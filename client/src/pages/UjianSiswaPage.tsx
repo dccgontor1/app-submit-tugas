@@ -16,11 +16,30 @@ export default function UjianSiswaPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // 1. Fungsi Check Status (Sekaligus ambil Profile)
+  // 1. Ambil profil siswa dari /sesi-status saat pertama mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
+        if (res.status === 401) { navigate('/'); return; }
+        if (!res.ok) return;
+        const data = await res.json();
+        // Hanya set profile jika ini adalah siswa (bukan staff)
+        if (!data.isStaff) {
+          setProfile({ nama: data.nama, examCode: data.examCode ?? 'Ujian' });
+        }
+      } catch {
+        // Biarkan jika gagal, akan di-handle oleh checkStatus
+      }
+    };
+    fetchProfile();
+  }, [navigate]);
+
+  // 2. Fungsi Check Status (timer & submission state)
   const checkStatus = async () => {
     try {
       const res = await fetch('http://localhost:5000/check-status-ujian', {
-        credentials: 'include', // Kirim cookie 'session' otomatis
+        credentials: 'include',
       });
 
       // Jika cookie tidak valid, tendang ke login
@@ -29,14 +48,20 @@ export default function UjianSiswaPage() {
         return;
       }
 
+      // ✅ Fix: jika sesi tidak ditemukan (404), mungkin siswa sudah submit
+      if (res.status === 404) {
+        setUploaded(true);
+        return;
+      }
+
       if (!res.ok) return;
       const data = await res.json();
-      
-      // Simpan info nama & ujian ke state (pengganti localStorage)
-      setProfile({
-        nama: data.nama,
-        examCode: data.examCode
-      });
+
+      // ✅ Fix: tangani status 'submitted' dari backend
+      if (data.submitted) {
+        setUploaded(true);
+        return;
+      }
 
       // Update Logika Timer
       if (data.startedAt && data.deadline) {
@@ -295,7 +320,7 @@ export default function UjianSiswaPage() {
         </button>
 
         <p className="text-center text-[11px] text-white/15 mt-4 font-mono">
-          Kamu bisa upload ulang sebelum waktu habis — file lama akan diganti.
+          File yang diupload akan langsung dikumpulkan ke server.
         </p>
       </main>
     </div>

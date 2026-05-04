@@ -96,10 +96,16 @@ export default function DashboardPage() {
   const handleBulkDeleteAkun = async () => {
     if (selectedAkun.size === 0) return;
     if (!window.confirm(`Hapus ${selectedAkun.size} akun sekaligus?`)) return;
-    await Promise.all([...selectedAkun].map(id =>
-      fetch(`http://localhost:5000/admin/akun/${id}`, { method: 'DELETE', credentials: 'include' })
-    ));
-    setAkunList(prev => prev.filter(a => !selectedAkun.has(a.id)));
+    // ✅ Fix: cek setiap response, hanya hapus dari state yang berhasil
+    const results = await Promise.all(
+      [...selectedAkun].map(async id => {
+        const res = await fetch(`http://localhost:5000/admin/akun/${id}`, { method: 'DELETE', credentials: 'include' });
+        return { id, ok: res.ok };
+      })
+    );
+    const successIds = new Set(results.filter(r => r.ok).map(r => r.id));
+    if (results.some(r => !r.ok)) alert('Beberapa akun gagal dihapus');
+    setAkunList(prev => prev.filter(a => !successIds.has(a.id)));
     setSelectedAkun(new Set());
   };
 
@@ -125,10 +131,16 @@ export default function DashboardPage() {
   const handleBulkDeleteSesi = async () => {
     if (selectedSesi.size === 0) return;
     if (!window.confirm(`Hapus ${selectedSesi.size} sesi sekaligus?`)) return;
-    await Promise.all([...selectedSesi].map(token =>
-      fetch(`http://localhost:5000/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' })
-    ));
-    setSesiList(prev => prev.filter(s => !selectedSesi.has(s.token)));
+    // ✅ Fix: cek setiap response, hanya hapus dari state yang berhasil
+    const results = await Promise.all(
+      [...selectedSesi].map(async token => {
+        const res = await fetch(`http://localhost:5000/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' });
+        return { token, ok: res.ok };
+      })
+    );
+    const successTokens = new Set(results.filter(r => r.ok).map(r => r.token));
+    if (results.some(r => !r.ok)) alert('Beberapa sesi gagal dihapus');
+    setSesiList(prev => prev.filter(s => !successTokens.has(s.token)));
     setSelectedSesi(new Set());
   };
 

@@ -25,6 +25,7 @@ export default function LoginPage() {
     if (!res.ok) throw new Error(data.message || 'Login gagal!');
 
     login({ nama: data.user.nama, role: data.user.role }); // ✅ simpan info user saja
+    navigate(data.redirectTo || '/dashboard', { replace: true }); // ✅ fix: redirect setelah login
 
     } catch (err: any) {
       setError(err.message);
@@ -71,7 +72,7 @@ export default function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md bg-[#13131a] border border-white/8ded-sm p-10">
+      <div className="relative z-10 w-full max-w-md bg-[#13131a] border border-white/8 rounded-sm p-10">
         <p className="font-mono text-[10px] tracking-[0.2em] text-indigo-400 uppercase mb-2">
           Panel Administrasi
         </p>

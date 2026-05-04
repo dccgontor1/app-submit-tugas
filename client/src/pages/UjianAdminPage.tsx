@@ -78,9 +78,14 @@ export default function UjianAdminPage() {
       credentials: 'include',
     });
     if (!res.ok) return alert('Gagal memulai ujian');
-    await fetchUjian();
-    const updated = ujianList.find(u => u.id === selectedUjian.id);
-    if (updated) setSelectedUjian({ ...updated, status: 'BERLANGSUNG' });
+    // ✅ Fix: ambil data terbaru dari response, bukan dari stale state
+    const freshRes = await fetch('http://localhost:5000/admin/ujian', { credentials: 'include' });
+    if (freshRes.ok) {
+      const freshList: Ujian[] = await freshRes.json();
+      setUjianList(freshList);
+      const updated = freshList.find(u => u.id === selectedUjian.id);
+      if (updated) setSelectedUjian(updated);
+    }
     fetchMonitor(selectedUjian.id);
   };
 
@@ -89,7 +94,8 @@ export default function UjianAdminPage() {
     if (!showExtendModal || !selectedUjian) return;
     const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/extend`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', credentials: 'include' },
+      headers: { 'Content-Type': 'application/json' }, // ✅ fix: credentials dipindah ke fetch options
+      credentials: 'include',
       body: JSON.stringify({ token: showExtendModal.token, tambahMenit }),
     });
     if (!res.ok) return alert('Gagal extend waktu');
@@ -205,9 +211,6 @@ export default function UjianAdminPage() {
                 </div>
                 <div className="font-mono text-[9px] text-indigo-400/50 mb-1 tracking-wider uppercase">
                   ID: {u.id}
-                </div>
-                <div className="font-mono text-[10px] text-white/25">
-                  {u.durasi} menit · {u._count?.sesiAktif ?? 0} siswa
                 </div>
               </button>
             ))}
