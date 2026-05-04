@@ -15,17 +15,17 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-    const res = await fetch('http://localhost:5000/login-staff', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // ✅ kirim/terima cookie
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Login gagal!');
+      const res = await fetch('http://localhost:5000/login-staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // ✅ kirim/terima cookie
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login gagal!');
 
-    login({ nama: data.user.nama, role: data.user.role }); // ✅ simpan info user saja
-    navigate(data.redirectTo || '/dashboard', { replace: true }); // ✅ fix: redirect setelah login
+      login({ nama: data.user.nama, role: data.user.role }); // ✅ simpan info user saja
+      navigate(data.redirectTo || '/dashboard', { replace: true }); // ✅ fix: redirect setelah login
 
     } catch (err: any) {
       setError(err.message);
@@ -35,21 +35,21 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-  const checkSesi = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
-      const data = await res.json();
-      
-      // Jika status OK dan ada instruksi redirect dari backend
-      if (res.ok && data.redirectTo) {
-        navigate(data.redirectTo, { replace: true });
+    const checkSesi = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
+        const data = await res.json();
+
+        // Jika status OK dan ada instruksi redirect dari backend
+        if (res.ok && data.redirectTo) {
+          navigate(data.redirectTo, { replace: true });
+        }
+      } catch (e) {
+        // Biarkan di halaman login jika tidak ada sesi
       }
-    } catch (e) {
-      // Biarkan di halaman login jika tidak ada sesi
-    }
-  };
-  checkSesi();
-}, [navigate]);
+    };
+    checkSesi();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-[#0a0a0f] relative overflow-hidden">

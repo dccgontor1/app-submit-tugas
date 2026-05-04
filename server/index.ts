@@ -371,6 +371,75 @@ app.delete('/admin/sesi/:token', { preHandler: [pastikanAdmin] }, async (req, re
   }
 });
 
+// PUT /admin/sesi/:token — edit data sesi siswa (termasuk token, nama, kelas, noAbsen, deadline)
+app.put('/admin/sesi/:token', { preHandler: [pastikanAdmin] }, async (req, res) => {
+  const { token } = req.params as { token: string };
+  const { newToken, nama, kelas, noAbsen, deadline } = req.body as {
+    newToken?: string;
+    nama?: string;
+    kelas?: string;
+    noAbsen?: number;
+    deadline?: string;
+  };
+
+  try {
+    const sesi = await prisma.sesiAktif.findUnique({ where: { token } });
+    if (!sesi) return res.status(404).send({ message: 'Sesi tidak ditemukan' });
+
+    // Validasi noAbsen jika diberikan
+    if (noAbsen !== undefined && (isNaN(noAbsen) || noAbsen <= 0)) {
+      return res.status(400).send({ message: 'No. Absen harus berupa angka positif' });
+    }
+
+    // Validasi deadline jika diberikan
+    if (deadline && isNaN(new Date(deadline).getTime())) {
+      return res.status(400).send({ message: 'Format deadline tidak valid' });
+    }
+
+    const cleanToken = newToken?.trim().toUpperCase();
+
+    // Jika token diubah: delete lama + create baru dalam satu transaksi
+    if (cleanToken && cleanToken !== token) {
+      const existing = await prisma.sesiAktif.findUnique({ where: { token: cleanToken } });
+      if (existing) return res.status(400).send({ message: 'Token baru sudah dipakai oleh siswa lain' });
+
+      await prisma.$transaction([
+        prisma.sesiAktif.create({
+          data: {
+            token: cleanToken,
+            nama: nama?.trim() ?? sesi.nama,
+            kelas: kelas?.trim() ?? sesi.kelas,
+            noAbsen: noAbsen ?? sesi.noAbsen,
+            deadline: deadline ? new Date(deadline) : sesi.deadline,
+            startedAt: sesi.startedAt,
+            ujianId: sesi.ujianId,
+          },
+        }),
+        prisma.sesiAktif.delete({ where: { token } }),
+      ]);
+
+      return res.send({ success: true, token: cleanToken });
+    }
+
+    // Jika token tidak berubah: update field lainnya
+    const updated = await prisma.sesiAktif.update({
+      where: { token },
+      data: {
+        ...(nama !== undefined && { nama: nama.trim() }),
+        ...(kelas !== undefined && { kelas: kelas.trim() }),
+        ...(noAbsen !== undefined && { noAbsen }),
+        ...(deadline !== undefined && { deadline: new Date(deadline) }),
+      },
+    });
+
+    return res.send({ success: true, sesi: updated });
+  } catch (error) {
+    req.log.error(error);
+    return res.status(500).send({ message: 'Gagal mengupdate sesi' });
+  }
+});
+
+
 // ── GET /admin/ujian ─────────────────────────────────────
 app.get('/admin/ujian', { preHandler: [pastikanGuru] }, async (req, res) => {
   try {

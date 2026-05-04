@@ -19,6 +19,12 @@ export default function DashboardPage() {
   const [isLoadingSesi, setIsLoadingSesi] = useState(false);
   const [selectedSesi, setSelectedSesi] = useState<Set<string>>(new Set());
 
+  // Edit Sesi
+  const [editingSesi, setEditingSesi] = useState<Sesi | null>(null);
+  const [editSesiForm, setEditSesiForm] = useState({ token: '', nama: '', kelas: '', noAbsen: '', deadline: '' });
+  const [editSesiError, setEditSesiError] = useState('');
+  const [isSavingSesi, setIsSavingSesi] = useState(false);
+
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -197,6 +203,72 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  // Buka modal edit sesi dan isi form dengan data saat ini
+  const handleOpenEditSesi = (sesi: Sesi) => {
+    setEditingSesi(sesi);
+    // Convert deadline ISO ke format datetime-local (YYYY-MM-DDTHH:mm)
+    const deadlineLocal = sesi.deadline
+      ? new Date(sesi.deadline).toISOString().slice(0, 16)
+      : '';
+    setEditSesiForm({
+      token: sesi.token,
+      nama: sesi.nama,
+      kelas: sesi.kelas,
+      noAbsen: String(sesi.noAbsen),
+      deadline: deadlineLocal,
+    });
+    setEditSesiError('');
+  };
+
+  const handleSaveEditSesi = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingSesi) return;
+    setEditSesiError('');
+
+    const noAbsenNum = parseInt(editSesiForm.noAbsen);
+    if (isNaN(noAbsenNum) || noAbsenNum <= 0) {
+      setEditSesiError('No. Absen harus berupa angka positif');
+      return;
+    }
+
+    const tokenBaru = editSesiForm.token.trim().toUpperCase();
+    if (!tokenBaru) { setEditSesiError('Token tidak boleh kosong'); return; }
+    if (!editSesiForm.nama.trim()) { setEditSesiError('Nama tidak boleh kosong'); return; }
+    if (!editSesiForm.kelas.trim()) { setEditSesiError('Kelas tidak boleh kosong'); return; }
+    if (!editSesiForm.deadline) { setEditSesiError('Deadline harus diisi'); return; }
+
+    setIsSavingSesi(true);
+    try {
+      const res = await fetch(`http://localhost:5000/admin/sesi/${editingSesi.token}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          newToken: tokenBaru !== editingSesi.token ? tokenBaru : undefined,
+          nama: editSesiForm.nama.trim(),
+          kelas: editSesiForm.kelas.trim(),
+          noAbsen: noAbsenNum,
+          deadline: new Date(editSesiForm.deadline).toISOString(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Gagal menyimpan');
+
+      // Update state lokal tanpa refetch
+      const finalToken = tokenBaru !== editingSesi.token ? tokenBaru : editingSesi.token;
+      setSesiList(prev => prev.map(s =>
+        s.token === editingSesi.token
+          ? { ...s, token: finalToken, nama: editSesiForm.nama.trim(), kelas: editSesiForm.kelas.trim(), noAbsen: noAbsenNum, deadline: new Date(editSesiForm.deadline).toISOString() }
+          : s
+      ));
+      setEditingSesi(null);
+    } catch (err: any) {
+      setEditSesiError(err.message);
+    } finally {
+      setIsSavingSesi(false);
+    }
+  };
 
   useEffect(() => { fetchAkun(); fetchSesi(); }, []);
 
@@ -427,10 +499,16 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-3.5 text-center">
                         {user?.role === 'ADMIN' ? (
-                          <button onClick={() => handleDeleteSesi(sesi.token, sesi.nama)}
-                            className="border border-transparent hover:border-red-500/40 text-red-400/50 hover:text-red-300 hover:bg-red-500/[0.06] font-mono text-[9px] tracking-[0.1em] uppercase px-3 py-1.5 rounded-sm transition-all">
-                            Hapus
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button onClick={() => handleOpenEditSesi(sesi)}
+                              className="border border-transparent hover:border-indigo-500/40 text-indigo-400/50 hover:text-indigo-300 hover:bg-indigo-500/[0.06] font-mono text-[9px] tracking-[0.1em] uppercase px-3 py-1.5 rounded-sm transition-all">
+                              Edit
+                            </button>
+                            <button onClick={() => handleDeleteSesi(sesi.token, sesi.nama)}
+                              className="border border-transparent hover:border-red-500/40 text-red-400/50 hover:text-red-300 hover:bg-red-500/[0.06] font-mono text-[9px] tracking-[0.1em] uppercase px-3 py-1.5 rounded-sm transition-all">
+                              Hapus
+                            </button>
+                          </div>
                         ) : <span className="font-mono text-[9px] text-white/15">—</span>}
                       </td>
                     </tr>
@@ -480,6 +558,110 @@ export default function DashboardPage() {
                   className="border border-white/10 hover:border-white/25 text-white/40 hover:text-white/70 font-mono text-[10px] tracking-[0.1em] uppercase px-4 py-2.5 rounded-sm transition-all">Batal</button>
                 <button type="submit"
                   className="bg-indigo-500 hover:bg-indigo-600 text-white font-mono text-[10px] tracking-[0.1em] uppercase px-4 py-2.5 rounded-sm transition-colors">Simpan Akun</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Sesi Siswa */}
+      {editingSesi && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-6 z-50"
+          onClick={e => { if (e.target === e.currentTarget) setEditingSesi(null); }}>
+          <div className="bg-[#13131a] border border-white/10 rounded-sm w-full max-w-md overflow-hidden">
+            <div className="px-6 py-5 border-b border-white/[0.06] flex justify-between items-center">
+              <div>
+                <span className="font-mono text-xs tracking-[0.1em] uppercase text-white/70">Edit Sesi Siswa</span>
+                <p className="font-mono text-[11px] text-indigo-400/60 mt-0.5">{editingSesi.ujianId}</p>
+              </div>
+              <button onClick={() => setEditingSesi(null)} className="text-white/30 hover:text-white/70 text-base leading-none transition-colors">✕</button>
+            </div>
+
+            <form onSubmit={handleSaveEditSesi}>
+              <div className="p-6 space-y-4">
+
+                {/* Token */}
+                <div>
+                  <label className="block font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase mb-1.5">
+                    Token / Kode Login
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={20}
+                    value={editSesiForm.token}
+                    onChange={e => setEditSesiForm({ ...editSesiForm, token: e.target.value.toUpperCase() })}
+                    className="w-full bg-white/[0.04] border border-amber-500/20 rounded-sm px-4 py-3 font-mono text-sm text-amber-300 tracking-[0.2em] placeholder-white/20 outline-none focus:border-amber-500/50 focus:bg-amber-500/5 transition-colors"
+                  />
+                  <p className="font-mono text-[10px] text-white/20 mt-1">⚠ Mengubah token akan mengubah kode login siswa</p>
+                </div>
+
+                {/* Nama */}
+                <div>
+                  <label className="block font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase mb-1.5">Nama Siswa</label>
+                  <input
+                    type="text"
+                    required
+                    value={editSesiForm.nama}
+                    onChange={e => setEditSesiForm({ ...editSesiForm, nama: e.target.value })}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-sm px-4 py-3 text-sm text-[#e8e6e0] placeholder-white/20 outline-none focus:border-indigo-500/60 focus:bg-indigo-500/5 transition-colors"
+                  />
+                </div>
+
+                {/* Kelas & No. Absen — 2 kolom */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase mb-1.5">Kelas</label>
+                    <input
+                      type="text"
+                      required
+                      value={editSesiForm.kelas}
+                      onChange={e => setEditSesiForm({ ...editSesiForm, kelas: e.target.value })}
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-sm px-4 py-3 text-sm text-[#e8e6e0] placeholder-white/20 outline-none focus:border-indigo-500/60 focus:bg-indigo-500/5 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase mb-1.5">No. Absen</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={editSesiForm.noAbsen}
+                      onChange={e => setEditSesiForm({ ...editSesiForm, noAbsen: e.target.value })}
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-sm px-4 py-3 text-sm text-[#e8e6e0] placeholder-white/20 outline-none focus:border-indigo-500/60 focus:bg-indigo-500/5 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Deadline */}
+                <div>
+                  <label className="block font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase mb-1.5">Deadline</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={editSesiForm.deadline}
+                    onChange={e => setEditSesiForm({ ...editSesiForm, deadline: e.target.value })}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-sm px-4 py-3 text-sm text-[#e8e6e0] outline-none focus:border-indigo-500/60 focus:bg-indigo-500/5 transition-colors [color-scheme:dark]"
+                  />
+                </div>
+
+                {/* Error */}
+                {editSesiError && (
+                  <div className="bg-red-500/10 border border-red-500/25 rounded-sm px-4 py-3 font-mono text-[11px] text-red-300">
+                    {editSesiError}
+                  </div>
+                )}
+              </div>
+
+              <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2.5 justify-end">
+                <button type="button" onClick={() => setEditingSesi(null)}
+                  className="border border-white/10 hover:border-white/25 text-white/40 hover:text-white/70 font-mono text-[10px] tracking-[0.1em] uppercase px-4 py-2.5 rounded-sm transition-all">
+                  Batal
+                </button>
+                <button type="submit" disabled={isSavingSesi}
+                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white font-mono text-[10px] tracking-[0.1em] uppercase px-4 py-2.5 rounded-sm transition-colors">
+                  {isSavingSesi ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </button>
               </div>
             </form>
           </div>
