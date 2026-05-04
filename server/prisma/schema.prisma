@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  GURU
+}
+
+model Akun {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  nama      String   
+  password  String    
+  role      Role    @default(GURU)
+  createdAt DateTime  @default(now())
+}
+
+enum StatusTugas {
+  MENUNGGU    // baru dikumpulkan, belum dinilai
+  DINILAI     // sudah ada nilai dari guru
+  DIKEMBALIKAN // dikembalikan ke siswa untuk revisi
+}
+
+model Tugas {
+  id          Int         @id @default(autoincrement())
+  nama        String
+  kelas       String
+  noAbsen     Int
+  token       String      @unique
+  filePath    String
+  submittedAt DateTime    @default(now())
+  
+  nilai       Float?      // nullable, diisi guru nanti
+  catatan     String?     // komentar/feedback dari guru
+  dinilaiAt   DateTime?   // kapan dinilai
+  status      StatusTugas @default(MENUNGGU)
+
+  ujianId     String?
+  ujian       Ujian?       @relation(fields: [ujianId], references: [id])
+
+  @@index([noAbsen])
+}
+
+model Ujian {
+  id          String        @id @default("")
+  judul       String
+  deskripsi   String?
+  formatFile  String[]   // ["pdf", "docx", "jpg", "png"]
+  durasi      Int        // dalam menit
+  status      String     @default("MENUNGGU") // MENUNGGU | BERLANGSUNG | SELESAI
+  createdAt   DateTime   @default(now())
+  deletedAt   DateTime?
+
+  sesiAktif   SesiAktif[]
+  tugas       Tugas[] 
+}
+
+model SesiAktif {
+  token       String   @id
+  nama        String
+  kelas       String
+  noAbsen     Int
+  deadline    DateTime
+  startedAt   DateTime?
+
+  ujianId     String
+  ujian       Ujian   @relation(fields: [ujianId], references: [id])
+
+  @@unique([ujianId, noAbsen])
+}
