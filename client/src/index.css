@@ -1,16 +1,80 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 @theme {
-  --font-family-mono: 'Space Mono', monospace;
-  --font-family-sans: 'DM Sans', sans-serif;
+  --font-family-sans: 'Product Sans', sans-serif;
+  --font-family-mono: 'Product Sans', monospace;
+}
+
+/* Base resets & dark theme body */
+body {
+  @apply bg-[#03050a] text-white min-h-screen selection:bg-blue-500/30 font-sans;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(20, 50, 150, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(0, 150, 255, 0.05), transparent 25%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism Utilities */
+@utility glass {
+  @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+}
+
+@utility glass-hover {
+  @apply hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300;
+}
+
+@utility glass-panel {
+  @apply bg-[#0b0f19]/80 backdrop-blur-2xl border border-white/[0.05] shadow-[0_8px_32px_0_rgba(0,0,0,0.4)];
+}
+
+@utility text-glow {
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @utility animate-modalIn {
-  animation: modalIn 0.18s ease;
+  animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Print / PDF Export ──────────────────────────────────────────────────── */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: fixed !important;
+    inset: 0 !important;
+    background: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 40px !important;
+    z-index: 99999 !important;
+  }
+  .print-card {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    font-family: 'Product Sans', Arial, sans-serif;
+    color: #111;
+    page-break-inside: avoid;
+  }
 }

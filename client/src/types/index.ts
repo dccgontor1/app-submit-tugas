@@ -5,25 +5,48 @@ export interface Akun {
   role: 'ADMIN' | 'GURU';
 }
 
+export interface Siswa {
+  stambuk: string;
+  noAbsen: number;
+  nama: string;
+  kelas: string;
+  daerah: string;
+  rayon: string;
+}
+
 export interface Sesi {
   token: string;
   nama: string;
   kelas: string;
   noAbsen: number;
-  ujianId: string;      // ✅ ganti examCode → ujianId, Int → String
+  stambuk?: string;
+  ujianId: string;
   deadline: string;
   startedAt: string | null;
 }
 
 export interface Ujian {
-  id: string;           // ✅ ganti Int → String (UJIAN-XXXXXX)
+  id: string;
   judul: string;
   deskripsi: string | null;
   formatFile: string[];
   durasi: number;
   status: 'MENUNGGU' | 'BERLANGSUNG' | 'SELESAI';
   createdAt: string;
+  deletedAt?: string | null;
   _count?: { sesiAktif: number };
+}
+
+export interface RiwayatUjian {
+  id: string;
+  judul: string;
+  deskripsi: string | null;
+  formatFile: string[];
+  durasi: number;
+  status: string;
+  createdAt: string;
+  deletedAt: string;
+  _count: { tugas: number };
 }
 
 export interface Tugas {
@@ -31,6 +54,7 @@ export interface Tugas {
   nama: string;
   kelas: string;
   noAbsen: number;
+  stambuk?: string;
   token: string;
   filePath: string;
   submittedAt: string;
@@ -39,11 +63,12 @@ export interface Tugas {
   dinilaiAt: string | null;
   status: 'MENUNGGU' | 'DINILAI' | 'DIKEMBALIKAN';
   ujianId: string;
-  ujian?: { judul: string };
+  ujian?: { judul: string; deletedAt?: string | null };
+  siswa?: Siswa & { daerah?: string; rayon?: string };
 }
 
 export interface AuthContextType {
   user: { nama: string; role?: string } | null;
   login: (user: { nama: string; role?: string }) => void;
   logout: () => void;
-}
+}

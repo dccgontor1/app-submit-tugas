@@ -16,14 +16,29 @@ model Akun {
   username  String    @unique
   nama      String   
   password  String    
-  role      Role    @default(GURU)
+  role      Role      @default(GURU)
   createdAt DateTime  @default(now())
 }
 
+// ── Master Data Siswa (diisi dari Excel, acuan permanen) ─────────────────
 enum StatusTugas {
-  MENUNGGU    // baru dikumpulkan, belum dinilai
-  DINILAI     // sudah ada nilai dari guru
+  MENUNGGU     // baru dikumpulkan, belum dinilai
+  DINILAI      // sudah ada nilai dari guru
   DIKEMBALIKAN // dikembalikan ke siswa untuk revisi
+}
+
+model Siswa {
+  stambuk   String    @id           // Nomor induk unik sebagai primary key
+  noAbsen   Int
+  nama      String
+  kelas     String
+  daerah    String    @default("")
+  rayon     String    @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sesiAktif SesiAktif[]
+  tugas     Tugas[]
 }
 
 model Tugas {
@@ -31,6 +46,7 @@ model Tugas {
   nama        String
   kelas       String
   noAbsen     Int
+  stambuk     String?
   token       String      @unique
   filePath    String
   submittedAt DateTime    @default(now())
@@ -41,19 +57,21 @@ model Tugas {
   status      StatusTugas @default(MENUNGGU)
 
   ujianId     String?
-  ujian       Ujian?       @relation(fields: [ujianId], references: [id])
+  ujian       Ujian?      @relation(fields: [ujianId], references: [id])
+  siswa       Siswa?      @relation(fields: [stambuk], references: [stambuk])
 
   @@index([noAbsen])
+  @@index([stambuk])
 }
 
 model Ujian {
   id          String        @id @default("")
   judul       String
   deskripsi   String?
-  formatFile  String[]   // ["pdf", "docx", "jpg", "png"]
-  durasi      Int        // dalam menit
-  status      String     @default("MENUNGGU") // MENUNGGU | BERLANGSUNG | SELESAI
-  createdAt   DateTime   @default(now())
+  formatFile  String[]      // ["pdf", "docx", "jpg", "png"]
+  durasi      Int           // dalam menit
+  status      String        @default("MENUNGGU") // MENUNGGU | BERLANGSUNG | SELESAI
+  createdAt   DateTime      @default(now())
   deletedAt   DateTime?
 
   sesiAktif   SesiAktif[]
@@ -61,15 +79,17 @@ model Ujian {
 }
 
 model SesiAktif {
-  token       String   @id
+  token       String    @id
   nama        String
   kelas       String
   noAbsen     Int
+  stambuk     String?
   deadline    DateTime
   startedAt   DateTime?
 
   ujianId     String
-  ujian       Ujian   @relation(fields: [ujianId], references: [id])
+  ujian       Ujian     @relation(fields: [ujianId], references: [id])
+  siswa       Siswa?    @relation(fields: [stambuk], references: [stambuk])
 
-  @@unique([ujianId, noAbsen])
+  @@unique([ujianId, stambuk])
 }
