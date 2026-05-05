@@ -70,7 +70,6 @@ model Ujian {
   deskripsi   String?
   formatFile  String[]      // ["pdf", "docx", "jpg", "png"]
   durasi      Int           // dalam menit
-  status      String        @default("MENUNGGU") // MENUNGGU | BERLANGSUNG | SELESAI
   createdAt   DateTime      @default(now())
   deletedAt   DateTime?
 

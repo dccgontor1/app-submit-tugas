@@ -31,7 +31,6 @@ export interface Ujian {
   deskripsi: string | null;
   formatFile: string[];
   durasi: number;
-  status: 'MENUNGGU' | 'BERLANGSUNG' | 'SELESAI';
   createdAt: string;
   deletedAt?: string | null;
   _count?: { sesiAktif: number };
@@ -43,7 +42,6 @@ export interface RiwayatUjian {
   deskripsi: string | null;
   formatFile: string[];
   durasi: number;
-  status: string;
   createdAt: string;
   deletedAt: string;
   _count: { tugas: number };
