@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitions — Mafatype.</title>
+    <meta name="description"
+        content="Pilih kompetisi mengetik dan buktikan kemampuanmu! Semua peserta mendapat teks yang sama.">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        .comp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .comp-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+            transition: box-shadow .25s, transform .2s;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .comp-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+            transform: translateY(-2px);
+        }
+
+        .comp-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .75rem;
+        }
+
+        .comp-badge {
+            padding: .28rem .75rem;
+            border-radius: 50px;
+            font-size: .76rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .badge-en {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .badge-id {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .badge-ar {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .comp-status {
+            padding: .22rem .65rem;
+            border-radius: 50px;
+            font-size: .72rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .status-active {
+            background: #22c55e22;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-upcoming {
+            background: #3b82f622;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-ended {
+            background: #ef444422;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .comp-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .comp-desc {
+            font-size: .88rem;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+
+        .comp-meta {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+            font-size: .78rem;
+            color: var(--text-muted);
+        }
+
+        .comp-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: .25rem;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .comp-countdown {
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .comp-participants {
+            font-size: .78rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" class="active" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Hero -->
+        <div class="card" style="margin-bottom:1.75rem;text-align:center;padding:1.5rem 2rem;">
+            <h1
+                style="font-size:1.9rem;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem;" data-i18n="competitions_title">
+                🏆 Typing Competitions
+            </h1>
+            <p style="color:var(--text-2);font-size:.92rem;" data-i18n="competitions_desc">
+                Pilih kompetisi dan buktikan kemampuan mengetikmu. Semua peserta mendapat <strong>kata yang
+                    sama</strong> — hanya skor terbaikmu yang dihitung!
+            </p>
+
+        </div>
+
+        <!-- Competition Cards -->
+        <div class="comp-grid" id="comp-list">
+            <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)" data-i18n="loading_competitions">
+                Memuat kompetisi…
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" style="display:flex; justify-content:center; gap:.75rem; margin-top:2.5rem; margin-bottom:2rem;"></div>
+
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        const API = '/mafatype/backend-php/api.php?action=';
+
+        function compStatus(c) {
+            const now = Date.now();
+            if (now < new Date(c.start_date)) return { label: '🕑 Upcoming', cls: 'status-upcoming' };
+            if (now > new Date(c.end_date)) return { label: '✅ Selesai', cls: 'status-ended' };
+            return { label: '🟢 Aktif', cls: 'status-active' };
+        }
+
+        function formatCountdown(endDate) {
+            const diff = new Date(endDate) - Date.now();
+            if (diff <= 0) return null;
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            if (d > 0) return `${d}h ${h}j tersisa`;
+            if (h > 0) return `${h}j ${m}m tersisa`;
+            return `${m}m tersisa`;
+        }
+
+        let curPage = 1;
+
+        async function loadComps(page = 1) {
+            curPage = page;
+            const list = document.getElementById('comp-list');
+            const pag = document.getElementById('pagination');
+            list.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">${App.t ? App.t('loading') : 'Memuat…'}</div>`;
+            
+            try {
+                const r = await fetch(API + `competitions&page=${page}&limit=12`);
+                const data = await r.json();
+                list.innerHTML = '';
+                
+                if (!data.competitions?.length) {
+                    list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">Tidak ada kompetisi aktif saat ini.</div>';
+                    pag.innerHTML = '';
+                    return;
+                }
+                
+                data.competitions.forEach(c => {
+                    const status = compStatus(c);
+                    const langLabel = { en: '🇺🇸 English', id: '🇮🇩 Indonesia', ar: '🇸🇦 Arabic' }[c.language] || c.language;
+                    const badgeCls = { en: 'badge-en', id: 'badge-id', ar: 'badge-ar' }[c.language] || 'badge-en';
+                    const start = new Date(c.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const end = new Date(c.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const countdown = formatCountdown(c.end_date);
+                    const isActive = status.cls === 'status-active';
+
+                    const card = document.createElement('div');
+                    card.className = 'comp-card';
+                    card.onclick = () => window.location.href = `competition.html?id=${c.id}`;
+                    card.innerHTML = `
+            <div class="comp-card-top">
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+                    <span class="comp-badge ${badgeCls}">${langLabel}</span>
+                    <span class="comp-status ${status.cls}">${status.label}</span>
+                </div>
+            </div>
+            <div class="comp-title">${c.title}</div>
+            <div class="comp-desc">${c.description || 'Kompetisi mengetik — buktikan kemampuanmu!'}</div>
+            <div class="comp-meta">
+                <span>📅 ${start}</span>
+                <span>🏁 ${end}</span>
+            </div>
+            <div class="comp-footer">
+                ${countdown ? `<span class="comp-countdown">⏳ ${countdown}</span>` : '<span></span>'}
+                <button class="btn btn-primary" style="padding:.5rem 1.25rem;font-size:.88rem;">
+                    ${isActive ? '▶ Ikut Sekarang' : (status.cls === 'status-upcoming' ? '🕑 Belum Mulai' : '📊 Lihat Hasil')}
+                </button>
+            </div>`;
+                    list.appendChild(card);
+                });
+
+                renderPagination(data.page, data.pages);
+            } catch (e) {
+                list.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#ef4444">Gagal memuat: ${e.message}</div>`;
+            }
+        }
+
+        function renderPagination(current, total) {
+            const pag = document.getElementById('pagination');
+            if (total <= 1) {
+                pag.innerHTML = '';
+                return;
+            }
+
+            let html = `<div class="pagination">`;
+            
+            // Previous Button
+            html += `<button class="pagination-btn" onclick="loadComps(${current - 1})" ${current === 1 ? 'disabled' : ''} title="${App.t ? App.t('prev') : 'Sebelumnya'}">
+                &laquo;
+            </button>`;
+
+            // Page Numbers
+            const delta = 2; // How many pages around current
+            let left = current - delta;
+            let right = current + delta;
+            
+            if (left < 1) {
+                right = Math.min(total, right + (1 - left));
+                left = 1;
+            }
+            if (right > total) {
+                left = Math.max(1, left - (right - total));
+                right = total;
+            }
+
+            if (left > 1) {
+                html += `<button class="pagination-btn" onclick="loadComps(1)">1</button>`;
+                if (left > 2) html += `<span style="color:var(--text-muted); padding:0 .25rem;">...</span>`;
+            }
+
+            for (let i = left; i <= right; i++) {
+                html += `<button class="pagination-btn ${i === current ? 'active' : ''}" onclick="loadComps(${i})">${i}</button>`;
+            }
+
+            if (right < total) {
+                if (right < total - 1) html += `<span style="color:var(--text-muted); padding:0 .25rem;">...</span>`;
+                html += `<button class="pagination-btn" onclick="loadComps(${total})">${total}</button>`;
+            }
+
+            // Next Button
+            html += `<button class="pagination-btn" onclick="loadComps(${current + 1})" ${current === total ? 'disabled' : ''} title="${App.t ? App.t('next') : 'Berikutnya'}">
+                &raquo;
+            </button>`;
+
+            html += `</div>`;
+            pag.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComps();
+        });
+    </script>
+</body>
+
+</html>

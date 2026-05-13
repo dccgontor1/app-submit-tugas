@@ -1,4 +1,5 @@
 import { createContext, useState, type ReactNode } from 'react';
+import { API_BASE_URL } from '../utils/api';
 
 interface User {
   nama: string;
@@ -29,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch('http://localhost:5000/logout', {
+    await fetch(`${API_BASE_URL}/logout`, {
       method: 'POST',
       credentials: 'include',
     });

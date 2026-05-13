@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Race — Mafatype.</title>
+    <meta name="description" content="Race against other players in real-time multiplayer typing competitions.">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        /* ── Multiplayer-specific styles ──────────────────────────────── */
+        .mp-lobby-card {
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        .mp-hero {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .mp-hero h2 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: .4rem;
+        }
+
+        .mp-hero p {
+            color: var(--text-2);
+            font-size: .9rem;
+        }
+
+        .server-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .3rem .75rem;
+            border-radius: 999px;
+            margin-bottom: .75rem;
+        }
+
+        .server-online {
+            background: rgba(34, 197, 94, .15);
+            color: #16a34a;
+        }
+
+        .server-offline {
+            background: rgba(239, 68, 68, .12);
+            color: #dc2626;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-online {
+            background: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, .25);
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+
+        .room-code-box {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .room-code-label {
+            font-size: .8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: .4rem;
+        }
+
+        .room-code-val {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: .2em;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .player-waiting-item {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .6rem .875rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: .625rem;
+        }
+
+        .you-badge {
+            margin-left: auto;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(var(--primary-rgb), .12);
+            padding: .1rem .5rem;
+            border-radius: 999px;
+        }
+
+        .race-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        #race-timer {
+            font-size: 1.25rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--primary);
+            background: rgba(var(--primary-rgb), .1);
+            padding: .25rem .75rem;
+            border-radius: .5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            border-radius: .5rem;
+            transition: background var(--transition);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-row-mine {
+            background: rgba(var(--primary-rgb), .07);
+            outline: 1px solid rgba(var(--primary-rgb), .2);
+        }
+
+        #start-hint {
+            font-size: .8rem;
+            color: var(--text-2);
+            margin-top: .5rem;
+            text-align: center;
+        }
+
+        .word-display {
+            font-family: var(--mono);
+            font-size: 1.5rem;
+            line-height: 2.4rem;
+            height: 10rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            user-select: none;
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-content: flex-start;
+            transition: all var(--transition);
+        }
+
+        .word {
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+            border-radius: 6px;
+            padding: 2px 6px;
+            border: 1px solid transparent;
+        }
+
+        .word.active {
+            color: var(--text);
+            background: rgba(var(--primary-rgb), 0.08);
+            border: 1px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .word.correct {
+            color: var(--correct);
+        }
+
+        .word.wrong {
+            color: var(--wrong);
+            background: rgba(239, 68, 68, 0.05);
+            border-bottom: 2px wavy var(--wrong);
+        }
+
+        .typing-input {
+            width: 100%;
+            font-family: var(--mono);
+            font-size: 1.25rem;
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .typing-input:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer" class="active">Multiplayer Race</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width:820px">
+
+        <!-- ══ LOBBY VIEW ══════════════════════════════════════════════════ -->
+        <div id="view-lobby">
+            <div class="card">
+                <div class="mp-hero">
+                    <h2 data-i18n="mp_hero_title">⚡ Multiplayer Race</h2>
+                    <p data-i18n="mp_hero_desc">Adu kecepatan mengetik bersama teman. Hingga 100 pemain per room!</p>
+                    <div id="server-status" class="server-badge server-offline">
+                        <span class="status-dot status-offline"></span> <span data-i18n="loading">Menghubungkan…</span>
+                    </div>
+                    <button id="btn-connect-server" class="btn btn-sm"
+                        style="display:none; margin: 0 auto .75rem; font-size: .75rem; padding: .4rem .8rem; border-radius: 999px;">
+                        🔌 Hubungkan Server
+                    </button>
+                </div>
+                <div class="mp-lobby-card">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="mp_display_name">Nama Tampilan</label>
+                        <input class="form-input" type="text" id="mp-username" placeholder="Nama kamu…"
+                            data-i18n-placeholder="mp_name_placeholder">
+                    </div>
+                    <div class="form-row" style="display:flex;gap:.75rem">
+                        <div class="form-group" style="flex:1">
+                            <label class="form-label" data-i18n="mp_language">Bahasa</label>
+                            <select id="mp-lang"
+                                style="width:100%;padding:.7rem .875rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:.9rem">
+                                <option value="id">🇮🇩 Indonesian</option>
+                                <option value="en">🇺🇸 English</option>
+                                <option value="ar">🇸🇦 Arabic</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="width:130px">
+                            <label class="form-label" data-i18n="mp_max_players">Maks. Pemain</label>
+                            <input class="form-input" type="number" id="mp-max-players" value="5" min="1" max="100"
+                                style="text-align:center">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-create" style="width:100%; margin-bottom:.75rem"
+                        data-i18n="mp_create_room">
+                        ⊕ Buat Room
+                    </button>
+                    <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem">
+                        <div style="flex:1; height:1px; background:var(--border)"></div>
+                        <span style="font-size:.78rem; color:var(--text-muted)" data-i18n="mp_or">atau</span>
+                        <div style="flex:1; height:1px; background:var(--border)"></div>
+                    </div>
+                    <div style="display:flex; gap:.5rem">
+                        <input class="form-input" type="text" id="mp-code" placeholder="Kode Room (mis. 1234)"
+                            data-i18n-placeholder="mp_room_code_placeholder"
+                            style="flex:1; text-transform:uppercase; letter-spacing:.1em">
+                        <button class="btn" id="btn-join" data-i18n="mp_join_room">Gabung</button>
+                    </div>
+                    <div id="lobby-error" class="msg-error" style="margin-top:.5rem"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ WAITING ROOM VIEW ═══════════════════════════════════════════ -->
+        <div id="view-waiting" style="display:none">
+            <div class="card" style="text-align:center; margin-bottom:1.25rem">
+                <div class="room-code-label" data-i18n="room_code">Kode Room</div>
+                <div class="room-code-val" id="room-code-display">——</div>
+                <button class="btn" id="btn-copy-code" style="margin-top:.75rem; font-size:.8rem"
+                    data-i18n="copy_code">📋 Salin Kode</button>
+                <p style="color:var(--text-muted); margin-top:.75rem; font-size:.85rem" data-i18n="share_code_desc">
+                    Bagikan kode ini ke teman untuk bergabung
+                </p>
+            </div>
+            <div class="card" style="max-width:480px; margin:0 auto; text-align:center">
+                <h3 style="margin-bottom:1rem; font-weight:700" data-i18n="players_in_room">Pemain dalam Room</h3>
+                <div id="player-list" style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem"></div>
+                <div id="start-hint" style="margin-bottom:1rem"></div>
+                <button class="btn btn-primary" id="btn-start" style="display:none; width:100%" data-i18n="start_race">
+                    🏁 Mulai Balapan
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ RACE VIEW ═══════════════════════════════════════════════════ -->
+        <div id="view-race" style="display:none">
+            <!-- Typing Area (top) -->
+            <div class="card" style="margin-bottom:1.25rem">
+                <div class="race-header">
+                    <h3 style="font-weight:700" data-i18n="typing_now">⌨️ Race</h3>
+                    <div id="race-timer">⏱ 00:00</div>
+                </div>
+                <div class="word-display" id="word-display" spellcheck="false" autocorrect="off"
+                    style="margin-bottom:1.25rem">
+                    <span style="color:var(--text-muted)" data-i18n="loading">Memuat kata…</span>
+                </div>
+                <input type="text" id="typing-input" class="typing-input" autocomplete="off" spellcheck="false"
+                    autocorrect="off" placeholder="Tunggu hingga balapan dimulai..." data-i18n-placeholder="preparing"
+                    disabled onpaste="return false;" oncopy="return false;">
+            </div>
+
+            <!-- Live Progress (below typing area) -->
+            <div class="card" style="margin-bottom:1.25rem">
+                <h3 style="font-weight:700; margin-bottom:1rem" data-i18n="live_progress">🏎 Live Progress</h3>
+                <div id="opponent-progress"></div>
+            </div>
+
+            <!-- Results -->
+            <div class="card" id="race-results" style="display:none; margin-top:1.25rem">
+                <h3 style="font-size:1.5rem; font-weight:800; margin-bottom:1.5rem; text-align:center;
+                    background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text"
+                    data-i18n="race_results">
+                    🏆 Hasil Akhir
+                </h3>
+                <div id="results-list" style="max-width:400px; margin:0 auto 1.5rem"></div>
+                <div style="text-align:center">
+                    <button class="btn btn-primary" onclick="location.reload()" data-i18n="back_to_lobby">← Kembali ke
+                        Lobby</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Countdown Overlay -->
+    <div class="countdown-overlay" id="countdown-overlay" style="display:none">
+        <div>
+            <div class="countdown-num" id="countdown-num">3</div>
+            <div style="text-align:center; color:white; font-size:1.1rem; margin-top:1rem; font-weight:600; opacity:.8"
+                data-i18n="preparing">
+                Bersiap…</div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/multiplayer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.getUser();
+            if (user) {
+                document.getElementById('mp-username').value = user.username;
+            }
+        });
+    </script>
+</body>
+
+</html>

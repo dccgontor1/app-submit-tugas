@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title class="site-name-text">Mafatype. — Test Your Speed</title>
+    <meta name="description"
+        content="Free online typing speed test. Measure your WPM, accuracy, compete globally and race in realtime multiplayer.">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test" class="active">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1 class="hero-title" data-i18n="hero_title">Master Your Typing Speed.</h1>
+        <p class="hero-sub" data-i18n="hero_subtitle">The most advanced typing platform to train your fingers, compete with friends, and track your progress in real-time.</p>
+        <div class="hero-actions">
+            <a href="typing.html"><button class="btn btn-primary" data-i18n="start_test_btn">🚀 Start Typing Test</button></a>
+            <a href="multiplayer.html"><button class="btn" data-i18n="nav_multiplayer">⚡ Multiplayer Race</button></a>
+            <a href="practice.html"><button class="btn" data-i18n="nav_practice">🎯 Practice</button></a>
+            <a href="finger-training.html"><button class="btn" data-i18n="nav_finger_training">Finger Training</button></a>
+            <a href="competitions.html"><button class="btn" data-i18n="nav_competitions">🏆 Competitions</button></a>
+            <a href="leaderboard.html"><button class="btn" data-i18n="nav_leaderboard">🏅 Leaderboard</button></a>
+            <a href="profile.html"><button class="btn" data-i18n="nav_profile">Profile</button></a>
+        </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <div class="container">
+        <div class="features-grid" style="margin-top: 2.5rem;">
+            <a href="typing.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <div class="feature-title" data-i18n="feature_typing_title">Typing Test</div>
+                    <div class="feature-desc" data-i18n="feature_typing_desc">60-second tests with real-time WPM, accuracy, and error counting.</div>
+                </div>
+            </a>
+            <a href="multiplayer.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title" data-i18n="feature_multiplayer_title">Multiplayer Race</div>
+                    <div class="feature-desc" data-i18n="feature_multiplayer_desc">Race against up to 5 players in real-time with live progress bars.</div>
+                </div>
+            </a>
+            <a href="practice.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-title" data-i18n="feature_practice_title">Practice Mode</div>
+                    <div class="feature-desc" data-i18n="feature_practice_desc">Train your accuracy and typing speed with custom texts and difficulty
+                        levels.</div>
+                </div>
+            </a>
+            <a href="finger-training.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">🖐️</div>
+                    <div class="feature-title" data-i18n="feature_finger_title">Finger Training</div>
+                    <div class="feature-desc" data-i18n="feature_finger_desc">Build muscle memory by training specific fingers for professional touch
+                        typing.</div>
+                </div>
+            </a>
+            <a href="competitions.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <div class="feature-title" data-i18n="feature_comp_title">Competitions</div>
+                    <div class="feature-desc" data-i18n="feature_comp_desc">Join global typing competitions with fixed words and rank on the dedicated
+                        leaderboard.</div>
+                </div>
+            </a>
+            <a href="leaderboard.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">🏅</div>
+                    <div class="feature-title" data-i18n="feature_stats_title">Advanced Stats</div>
+                    <div class="feature-desc" data-i18n="feature_stats_desc">Deep dive into your progress with detailed charts.</div>
+                </div>
+            </a>
+            <a href="profile.html" style="text-decoration:none; color:inherit; display:block;">
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-title" data-i18n="nav_profile">Profile & Achievements</div>
+                    <div class="feature-desc" data-i18n="recent_activity">Track your progress over time with detailed statistics and unlock various
+                        achievements.</div>
+                </div>
+            </a>
+            <div style="display:block; height:100%;">
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <div class="feature-title">3 Languages</div>
+                    <div class="feature-desc">Test in English, Bahasa Indonesia, or Arabic — including RTL support.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        // Initial logic if needed
+        document.addEventListener('DOMContentLoaded', () => {
+            // No longer need local nav-auth sync, handled by App.init()
+        });
+    </script>
+</body>
+
+</html>

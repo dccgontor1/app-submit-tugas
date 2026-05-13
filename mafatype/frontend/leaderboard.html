@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" class="active" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="card" style="margin-bottom:1.5rem; text-align:center;">
+            <h2 data-i18n="lb_hero_title"
+                style="font-size:1.75rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+                🏆 Global Leaderboard</h2>
+        </div>
+
+        <div class="card">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+                <!-- Time filter -->
+                <div class="pills" id="time-pills">
+                    <button class="pill active" data-filter="all_time" data-i18n="lb_all_time">All Time</button>
+                    <button class="pill" data-filter="daily" data-i18n="lb_today">Today</button>
+                    <button class="pill" data-filter="weekly" data-i18n="lb_week">This Week</button>
+                    <button class="pill" data-filter="monthly" data-i18n="lb_month">This Month</button>
+                </div>
+                <!-- Lang filter -->
+                <div class="pills" id="lang-pills">
+                    <button class="pill active" data-lang="all" data-i18n="hist_all">🌍 All</button>
+                    <button class="pill" data-lang="en">🇺🇸 EN</button>
+                    <button class="pill" data-lang="id">🇮🇩 ID</button>
+                    <button class="pill" data-lang="ar">🇸🇦 AR</button>
+                </div>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="rank">#</th>
+                            <th data-i18n="username">Username</th>
+                            <th data-i18n="hist_wpm">WPM</th>
+                            <th data-i18n="accuracy">Accuracy</th>
+                            <th data-i18n="hist_lang">Lang</th>
+                            <th data-i18n="date">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lb-body">
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted)">Loading…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="lb-footer">
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast-container"></div>
+        <script src="../js/app.js"></script>
+        <script>
+            let curFilter = 'all_time', curLang = 'all', curPage = 1;
+            const limit = 20;
+
+            async function loadLeaderboard(page = 1) {
+                curPage = page;
+                const tbody = document.getElementById('lb-body');
+                const pgEl = document.getElementById('pagination');
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted)">${App.t('loading_dots')}</td></tr>`;
+
+                const { ok, data } = await App.get(`leaderboard?filter=${curFilter}&lang=${curLang}&page=${page}&limit=${limit}`);
+                tbody.innerHTML = '';
+
+                if (!ok || !data.leaderboard?.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted)">No records found.</td></tr>';
+                    pgEl.innerHTML = '';
+                    return;
+                }
+
+                data.leaderboard.forEach(r => {
+                    const tr = document.createElement('tr');
+                    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : r.rank;
+                    if (r.rank <= 3) tr.className = `rank-${r.rank}`;
+                    tr.innerHTML = `
+                    <td>${medal}</td>
+                    <td style="font-weight:600">
+                        <a href="profile.html?user_id=${r.user_id}" style="color:inherit; text-decoration:none;">
+                            ${r.username}
+                        </a>
+                    </td>
+                    <td style="color:var(--primary); font-weight:800">${r.wpm}</td>
+                    <td>${r.accuracy}%</td>
+                    <td><span style="text-transform:uppercase; font-size:0.75rem; font-weight:700; color:var(--text-muted)">${r.language || ''}</span></td>
+                    <td style="color:var(--text-muted); font-size:0.82rem">${new Date(r.created_at).toLocaleDateString()}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                // Pagination
+                pgEl.innerHTML = '';
+                if (data.pages <= 1) return;
+
+                const mkBtn = (label, p, disabled = false, active = false) => {
+                    const b = document.createElement('button');
+                    b.className = 'pg-btn' + (active ? ' active' : '');
+                    b.textContent = label;
+                    b.disabled = disabled;
+                    b.onclick = () => loadLeaderboard(p);
+                    pgEl.appendChild(b);
+                };
+
+                mkBtn('«', 1, page === 1);
+                mkBtn('‹', page - 1, page === 1);
+
+                const start = Math.max(1, page - 2);
+                const end = Math.min(data.pages, page + 2);
+                for (let i = start; i <= end; i++) mkBtn(i, i, false, i === page);
+
+                mkBtn('›', page + 1, page === data.pages);
+                mkBtn('»', data.pages, page === data.pages);
+            }
+
+            document.querySelectorAll('#time-pills .pill').forEach(b => {
+                b.addEventListener('click', () => {
+                    document.querySelectorAll('#time-pills .pill').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active'); curFilter = b.dataset.filter; loadLeaderboard();
+                });
+            });
+
+            document.querySelectorAll('#lang-pills .pill').forEach(b => {
+                b.addEventListener('click', () => {
+                    document.querySelectorAll('#lang-pills .pill').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active'); curLang = b.dataset.lang; loadLeaderboard();
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                loadLeaderboard();
+            });
+        </script>
+</body>
+
+</html>

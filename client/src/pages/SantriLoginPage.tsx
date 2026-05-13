@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../utils/api';
 
 export default function StudentLoginPage() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function StudentLoginPage() {
   useEffect(() => {
     const checkSesi = async () => {
       try {
-        const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/sesi-status`, { credentials: 'include' });
         const data = await res.json();
         if (res.ok && data.redirectTo) {
           navigate(data.redirectTo, { replace: true });
@@ -29,7 +30,7 @@ export default function StudentLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/login', {
+      const res = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -124,14 +125,25 @@ export default function StudentLoginPage() {
         </div>
 
         {}
-        <p className="text-center mt-8 text-xs text-white/30 tracking-wide">
-          Guru / Admin?{' '}
-          <button
-            onClick={() => navigate('/login')}
-            className="text-cyan-400 hover:text-cyan-300 hover:underline underline-offset-4 transition-colors font-medium"
-          >
-            Masuk ke Dashboard
-          </button>
+        <p className="text-center mt-8 text-xs text-white/30 tracking-wide flex flex-col gap-2">
+          <span>
+            Guru / Admin?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-cyan-400 hover:text-cyan-300 hover:underline underline-offset-4 transition-colors font-medium"
+            >
+              Masuk ke Dashboard
+            </button>
+          </span>
+          <span>
+            Ingin latihan?{' '}
+            <button
+              onClick={() => navigate('/typing')}
+              className="text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-4 transition-colors font-medium"
+            >
+              Latihan Mengetik (Mafatype)
+            </button>
+          </span>
         </p>
       </div>
     </div>

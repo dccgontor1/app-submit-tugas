@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { API_BASE_URL } from '../utils/api';
 import type { Ujian, Sesi } from '../types';
 import {
   CheckCircle,
@@ -20,7 +21,7 @@ import {
   Square
 } from 'lucide-react';
 
-const FORMAT_OPTIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'];
+const FORMAT_OPTIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'pptx', 'ppt'];
 
 export default function UjianAdminPage() {
   const { logout } = useAuth();
@@ -29,6 +30,7 @@ export default function UjianAdminPage() {
   const [ujianList, setUjianList] = useState<Ujian[]>([]);
   const [selectedUjian, setSelectedUjian] = useState<Ujian | null>(null);
   const [sesiList, setSesiList] = useState<Sesi[]>([]);
+  const [tugasList, setTugasList] = useState<any[]>([]);
   const [showBuatModal, setShowBuatModal] = useState(false);
   const [showExtendModal, setShowExtendModal] = useState<Sesi | null>(null);
   const [tambahMenit, setTambahMenit] = useState(10);
@@ -51,25 +53,29 @@ export default function UjianAdminPage() {
   const [form, setForm] = useState({
     judul: '',
     deskripsi: '',
-    formatFile: ['pdf'] as string[],
+    formatFile: ['pdf', 'pptx', 'ppt'] as string[],
     durasi: 90,
+    kriteria: [{ label: '', skor: 0 }] as { label: string; skor: number }[],
   });
 
   const fetchUjian = async () => {
-    const res = await fetch('http://localhost:5000/admin/ujian', { credentials: 'include' });
+    const res = await fetch(`${API_BASE_URL}/admin/ujian`, { credentials: 'include' });
     if (res.status === 401) return navigate('/401');
     if (!res.ok) return;
     setUjianList(await res.json());
   };
 
   const fetchMonitor = useCallback(async (id: string) => {
-    const res = await fetch(`http://localhost:5000/admin/ujian/${id}/monitor`, { credentials: 'include' });
-    if (!res.ok) return;
-    setSesiList(await res.json());
+    const [sRes, tRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/admin/ujian/${id}/monitor`, { credentials: 'include' }),
+      fetch(`${API_BASE_URL}/admin/tugas?ujianId=${id}`, { credentials: 'include' })
+    ]);
+    if (sRes.ok) setSesiList(await sRes.json());
+    if (tRes.ok) setTugasList(await tRes.json());
   }, []);
 
   const fetchKelas = async () => {
-    const res = await fetch('http://localhost:5000/admin/siswa/kelas', { credentials: 'include' });
+    const res = await fetch(`${API_BASE_URL}/admin/siswa/kelas`, { credentials: 'include' });
     if (res.ok) setKelasList(await res.json());
   };
 
@@ -89,29 +95,33 @@ export default function UjianAdminPage() {
 
   const handleBuatUjian = async (e: FormEvent) => {
     e.preventDefault();
-    const res = await fetch('http://localhost:5000/admin/ujian', {
+    const cleanForm = {
+      ...form,
+      kriteria: form.kriteria.filter(k => k.label.trim() !== '')
+    };
+    const res = await fetch(`${API_BASE_URL}/admin/ujian`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(form),
+      body: JSON.stringify(cleanForm),
     });
     if (!res.ok) return alert('Gagal membuat ujian');
     setShowBuatModal(false);
-    setForm({ judul: '', deskripsi: '', formatFile: ['pdf'], durasi: 90 });
+    setForm({ judul: '', deskripsi: '', formatFile: ['pdf'], durasi: 90, kriteria: [{ label: '', skor: 0 }] });
     fetchUjian();
   };
 
   const handleStartBatch = async (tokens: string[], batchLabel: string) => {
     if (!selectedUjian) return;
     if (!window.confirm(`Mulai ${batchLabel} sekarang?\nTimer akan berjalan untuk ${tokens.length} siswa dalam batch ini.`)) return;
-    const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/start-batch`, {
+    const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/start-batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ tokens }),
     });
     if (!res.ok) return alert('Gagal memulai batch');
-    const freshRes = await fetch('http://localhost:5000/admin/ujian', { credentials: 'include' });
+    const freshRes = await fetch(`${API_BASE_URL}/admin/ujian`, { credentials: 'include' });
     if (freshRes.ok) {
       const freshList: Ujian[] = await freshRes.json();
       setUjianList(freshList);
@@ -124,7 +134,7 @@ export default function UjianAdminPage() {
   const handleEndBatch = async (tokens: string[], batchLabel: string) => {
     if (!selectedUjian) return;
     if (!window.confirm(`Akhiri ${batchLabel} sekarang? Semua siswa dalam batch ini akan langsung selesai.`)) return;
-    const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/end-batch`, {
+    const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/end-batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -137,7 +147,7 @@ export default function UjianAdminPage() {
   const handleExtend = async (e: FormEvent) => {
     e.preventDefault();
     if (!showExtendModal || !selectedUjian) return;
-    const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/extend`, {
+    const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/extend`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -148,10 +158,36 @@ export default function UjianAdminPage() {
     fetchMonitor(selectedUjian.id);
   };
 
+  const handleResetSesi = async (token: string, nama: string) => {
+    if (!window.confirm(`Reset sesi ${nama}? Siswa bisa login ulang.`)) return;
+    const res = await fetch(`${API_BASE_URL}/admin/sesi/${token}/reset`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) return alert('Gagal reset sesi');
+    fetchMonitor(selectedUjian!.id);
+  };
+
+  const handleRemedial = async (stambuk?: string, noAbsen?: number, kelas?: string, nama?: string) => {
+    const min = prompt(`Remedial untuk ${nama || 'siswa'}?\nMasukkan durasi remedial (menit):`, '60');
+    if (!min) return;
+    const deadline = new Date(Date.now() + Number(min) * 60000).toISOString();
+    
+    const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian!.id}/remedial`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ stambuk, noAbsen, kelas, deadline }),
+    });
+    if (!res.ok) return alert('Gagal memproses remedial');
+    alert('Siswa berhasil diremedialkan.');
+    fetchMonitor(selectedUjian!.id);
+  };
+
   const handleHapusUjian = async (id: string, judul: string) => {
     if (!window.confirm(`Hapus ujian "${judul}"? Semua sesi akan terhapus dan muncul di riwayat.`)) return;
     try {
-      const res = await fetch(`http://localhost:5000/admin/ujian/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Gagal menghapus'); }
       setSelectedUjian(null);
       fetchUjian();
@@ -163,7 +199,7 @@ export default function UjianAdminPage() {
     if (!selectedUjian || batchKelas.length === 0 || !batchDeadline) return;
     setIsBatchLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/generate-sesi-batch`, {
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/generate-sesi-batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -172,7 +208,7 @@ export default function UjianAdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Gagal');
       // Fetch fresh sesi list then show preview
-      const monRes = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian.id}/monitor`, { credentials: 'include' });
+      const monRes = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/monitor`, { credentials: 'include' });
       const allSesi: Sesi[] = monRes.ok ? await monRes.json() : [];
       const deadlineTs = new Date(batchDeadline).getTime().toString();
       const newSesi = allSesi.filter(s => s.deadline && new Date(s.deadline).getTime().toString() === deadlineTs);
@@ -270,7 +306,7 @@ export default function UjianAdminPage() {
   const handleDeleteSesi = async (token: string, nama: string) => {
     if (!confirm(`Hapus sesi atas nama ${nama}?`)) return;
     try {
-      const res = await fetch(`http://localhost:5000/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Gagal hapus');
       if (selectedUjian) fetchMonitor(selectedUjian.id);
     } catch (e) {
@@ -282,7 +318,7 @@ export default function UjianAdminPage() {
     if (!confirm('Hapus seluruh sesi dalam batch ini?')) return;
     try {
       const tokens = groupedBatches[batchKey].map(s => s.token);
-      await Promise.all(tokens.map(t => fetch(`http://localhost:5000/admin/sesi/${t}`, { method: 'DELETE', credentials: 'include' })));
+      await Promise.all(tokens.map(t => fetch(`${API_BASE_URL}/admin/sesi/${t}`, { method: 'DELETE', credentials: 'include' })));
       if (selectedUjian) fetchMonitor(selectedUjian.id);
     } catch (e) {
       alert('Terjadi kesalahan saat menghapus batch');
@@ -392,6 +428,10 @@ export default function UjianAdminPage() {
               {sortedBatches.map((batchKey, i) => {
                 const batchSiswa = groupedBatches[batchKey];
                 const kelasDalamBatch = Array.from(new Set(batchSiswa.map(s => s.kelas))).sort();
+                const tugasInBatch = tugasList.filter(t => 
+                  kelasDalamBatch.includes(t.kelas) && 
+                  (batchSiswa.some(s => s.stambuk === t.stambuk) || (!t.stambuk && batchSiswa.some(s => s.noAbsen === t.noAbsen)))
+                );
                 const batchTokens = batchSiswa.map(s => s.token);
                 const isBatchStarted = batchSiswa.some(s => !!s.startedAt);
                 const isBatchActive = batchSiswa.some(s => !!s.startedAt && !isExpired(s.deadline));
@@ -399,7 +439,6 @@ export default function UjianAdminPage() {
                 const isOpen = expandedBatches.has(batchKey);
                 return (
                   <div key={batchKey} className="glass-panel rounded-2xl overflow-hidden border border-white/10 group/batch">
-                    {/* Accordion Header */}
                     <div
                       className="px-5 py-3.5 bg-white/[0.02] flex items-center justify-between cursor-pointer select-none hover:bg-white/[0.04] transition-colors"
                       onClick={() => toggleBatch(batchKey)}
@@ -442,13 +481,27 @@ export default function UjianAdminPage() {
                         <div className="text-white/30 ml-1">{isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</div>
                       </div>
                     </div>
-                    {/* Accordion Body */}
                     {isOpen && (
-                      <table className="w-full text-left">
-                        <thead><tr className="border-b border-white/5 bg-white/[0.01]">
-                          {['No', 'Nama', 'Kelas', 'Token', 'Status', 'Aksi'].map((h, idx) => <th key={h} className={`px-5 py-3 text-[10px] text-white/20 uppercase tracking-widest font-bold ${idx === 5 ? 'text-center' : ''}`}>{h}</th>)}
-                        </tr></thead>
-                        <tbody>
+                      <div className="bg-black/20">
+                        <div className="grid grid-cols-4 gap-px bg-white/5 border-b border-white/5">
+                          {[
+                            { label: 'Total Siswa', val: batchSiswa.length + tugasInBatch.length, color: 'text-white' },
+                            { label: 'Hadir (Login)', val: batchSiswa.filter(s => !!s.loggedInAt).length + tugasInBatch.length, color: 'text-emerald-400' },
+                            { label: 'Belum Login', val: batchSiswa.filter(s => !s.loggedInAt).length, color: 'text-red-400' },
+                            { label: 'Sudah Submit', val: tugasInBatch.length, color: 'text-blue-400' },
+                          ].map((s, idx) => (
+                            <div key={idx} className="bg-white/[0.02] p-4 text-center">
+                              <p className="text-[9px] uppercase tracking-widest text-white/20 mb-1 font-bold">{s.label}</p>
+                              <p className={`text-xl font-bold ${s.color}`}>{s.val}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <table className="w-full text-left">
+                          <thead><tr className="border-b border-white/5 bg-white/[0.01]">
+                            {['No', 'Nama', 'Kelas', 'Token', 'Hadir', 'Status', 'Aksi'].map((h, idx) => <th key={h} className={`px-5 py-3 text-[10px] text-white/20 uppercase tracking-widest font-bold ${idx === 6 ? 'text-center' : ''}`}>{h}</th>)}
+                          </tr></thead>
+                          <tbody>
                           {batchSiswa.map(sesi => {
                             const on = !!sesi.startedAt, exp = isExpired(sesi.deadline);
                             const cls = !on ? 'text-white/30 bg-white/5 border-white/10' : exp ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
@@ -458,9 +511,21 @@ export default function UjianAdminPage() {
                                 <td className="px-5 py-3"><div className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">{sesi.nama}</div><div className="text-[10px] text-white/20">{sesi.stambuk || '-'}</div></td>
                                 <td className="px-5 py-3"><span className="text-xs text-white/50">{sesi.kelas}</span></td>
                                 <td className="px-5 py-3"><span className="font-mono text-xs text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2 py-1 rounded">{sesi.token}</span></td>
+                                <td className="px-5 py-3">
+                                  {sesi.loggedInAt ? (
+                                    <span className="text-[9px] font-bold text-emerald-400/70 flex items-center gap-1.5 bg-emerald-500/5 px-2 py-1 rounded-lg border border-emerald-500/10 w-fit">
+                                      <CheckCircle className="w-3 h-3" /> Hadir
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] font-bold text-white/10 flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5 w-fit">
+                                      <Clock className="w-3 h-3" /> Belum
+                                    </span>
+                                  )}
+                                </td>
                                 <td className="px-5 py-3"><span className={`text-[9px] font-bold uppercase px-2 py-1 rounded-lg border ${cls}`}>{!on ? 'Tunggu' : exp ? 'Habis' : 'Aktif'}</span></td>
                                 <td className="px-5 py-3 text-center">
                                   <div className="flex items-center justify-center gap-2">
+                                    <button onClick={() => handleResetSesi(sesi.token, sesi.nama)} className="text-[10px] font-bold uppercase px-3 py-1.5 bg-white/5 hover:bg-amber-500/20 text-white/50 hover:text-amber-400 border border-white/10 hover:border-amber-500/30 rounded-lg transition-all" title="Reset Login">Reset</button>
                                     <button onClick={() => { setShowExtendModal(sesi); setTambahMenit(10); }} className="text-[10px] font-bold uppercase px-3 py-1.5 bg-white/5 hover:bg-emerald-500/20 text-white/50 hover:text-emerald-400 border border-white/10 hover:border-emerald-500/30 rounded-lg transition-all">+Waktu</button>
                                     <button onClick={() => handleDeleteSesi(sesi.token, sesi.nama)} className="text-[10px] font-bold uppercase px-3 py-1.5 bg-white/5 hover:bg-red-500/20 text-white/50 hover:text-red-400 border border-white/10 hover:border-red-500/30 rounded-lg transition-all opacity-0 group-hover:opacity-100">Hapus</button>
                                   </div>
@@ -468,10 +533,31 @@ export default function UjianAdminPage() {
                               </tr>
                             );
                           })}
+                          {tugasInBatch.map(tugas => (
+                            <tr key={tugas.id} className="border-b border-white/[0.02] last:border-0 bg-white/[0.01] hover:bg-white/[0.03] group grayscale opacity-60">
+                              <td className="px-5 py-3 text-xs text-white/20 font-mono">{tugas.noAbsen}</td>
+                              <td className="px-5 py-3"><div className="text-sm font-bold text-white/60">{tugas.nama}</div><div className="text-[10px] text-white/20">{tugas.stambuk || '-'}</div></td>
+                              <td className="px-5 py-3"><span className="text-xs text-white/40">{tugas.kelas}</span></td>
+                              <td className="px-5 py-3 text-white/10 text-xs italic">— Submitted —</td>
+                              <td className="px-5 py-3">
+                                <span className="text-[9px] font-bold text-blue-400/70 flex items-center gap-1.5 bg-blue-500/5 px-2 py-1 rounded-lg border border-blue-500/10 w-fit">
+                                  <CheckCircle className="w-3 h-3" /> Selesai
+                                </span>
+                              </td>
+                              <td className="px-5 py-3"><span className="text-[9px] font-bold uppercase px-2 py-1 rounded-lg border border-white/10 text-white/30">Submitted</span></td>
+                              <td className="px-5 py-3 text-center">
+                                <button onClick={() => handleRemedial(tugas.stambuk, tugas.noAbsen, tugas.kelas, tugas.nama)} 
+                                  className="text-[10px] font-bold uppercase px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/30 rounded-xl transition-all">
+                                  Remedial
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
-                      </table>
-                    )}
-                  </div>
+                          </table>
+                        </div>
+                      )}
+                    </div>
                 );
               })}
             </div>
@@ -479,7 +565,7 @@ export default function UjianAdminPage() {
         )}
       </main>
 
-      { }
+
       {showBuatModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 z-50 animate-modalIn"
           onClick={e => { if (e.target === e.currentTarget) setShowBuatModal(false); }}>
@@ -518,6 +604,43 @@ export default function UjianAdminPage() {
                   </label>
                   <input type="range" min={15} max={240} step={5} value={form.durasi} onChange={e => setForm({ ...form, durasi: Number(e.target.value) })}
                     className="w-full accent-blue-500" />
+                </div>
+
+                <div className="pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] tracking-wider text-white/40 uppercase font-semibold">Kriteria Penilaian</label>
+                    <button type="button" onClick={() => setForm(f => ({ ...f, kriteria: [...f.kriteria, { label: '', skor: 0 }] }))}
+                      className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                      <Plus className="w-3 h-3" /> Tambah
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {form.kriteria.map((k, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input type="text" placeholder="Nama Kriteria (Contoh: Kerapihan)" value={k.label} required
+                          onChange={e => {
+                            const nk = [...form.kriteria];
+                            nk[idx].label = e.target.value;
+                            setForm({ ...form, kriteria: nk });
+                          }}
+                          className="flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-blue-500/50" />
+                        <input type="number" placeholder="Skor" value={k.skor} required
+                          onChange={e => {
+                            const nk = [...form.kriteria];
+                            nk[idx].skor = Number(e.target.value);
+                            setForm({ ...form, kriteria: nk });
+                          }}
+                          className="w-16 bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-xs text-white text-center outline-none focus:border-blue-500/50" />
+                        {form.kriteria.length > 1 && (
+                          <button type="button" onClick={() => setForm(f => ({ ...f, kriteria: f.kriteria.filter((_, i) => i !== idx) }))}
+                            className="p-2 text-white/20 hover:text-red-400 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <div className="text-[9px] text-white/20 italic mt-1 font-medium">Total Skor: {form.kriteria.reduce((a, b) => a + b.skor, 0)}</div>
+                  </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 mt-8">
                   <button type="button" onClick={() => setShowBuatModal(false)}

@@ -23,6 +23,7 @@ export interface Sesi {
   ujianId: string;
   deadline: string;
   startedAt: string | null;
+  loggedInAt: string | null;
 }
 
 export interface Ujian {
@@ -31,6 +32,7 @@ export interface Ujian {
   deskripsi: string | null;
   formatFile: string[];
   durasi: number;
+  kriteria?: { label: string; skor: number }[] | null;
   createdAt: string;
   deletedAt?: string | null;
   _count?: { sesiAktif: number };
@@ -42,6 +44,7 @@ export interface RiwayatUjian {
   deskripsi: string | null;
   formatFile: string[];
   durasi: number;
+  kriteria?: { label: string; skor: number }[] | null;
   createdAt: string;
   deletedAt: string;
   _count: { tugas: number };
@@ -58,10 +61,11 @@ export interface Tugas {
   submittedAt: string;
   nilai: number | null;
   catatan: string | null;
+  pemeriksa: string | null;
   dinilaiAt: string | null;
   status: 'MENUNGGU' | 'DINILAI' | 'DIKEMBALIKAN';
   ujianId: string;
-  ujian?: { judul: string; deletedAt?: string | null };
+  ujian?: { judul: string; deletedAt?: string | null; kriteria?: { label: string; skor: number }[] | null };
   siswa?: Siswa & { daerah?: string; rayon?: string };
 }
 

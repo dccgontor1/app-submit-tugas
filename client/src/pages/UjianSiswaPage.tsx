@@ -1,6 +1,7 @@
 import { Timer } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../utils/api';
 
 export default function UjianSiswaPage() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function UjianSiswaPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/sesi-status`, { credentials: 'include' });
         if (res.status === 401) { navigate('/'); return; }
         if (!res.ok) return;
         const data = await res.json();
@@ -35,7 +36,7 @@ export default function UjianSiswaPage() {
 
   const checkStatus = async () => {
     try {
-      const res = await fetch('http://localhost:5000/check-status-ujian', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/check-status-ujian`, { credentials: 'include' });
 
       if (res.status === 401) { navigate('/'); return; }
       if (res.status === 404) { setUploaded(true); return; }
@@ -106,7 +107,7 @@ export default function UjianSiswaPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:5000/upload-jawaban', {
+      const res = await fetch(`${API_BASE_URL}/upload-jawaban`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -127,7 +128,7 @@ export default function UjianSiswaPage() {
     const yakin = window.confirm("Apakah Anda yakin ingin logout? Sesi ujian akan tetap berjalan di server.");
     if (!yakin) return;
     try {
-      await fetch('http://localhost:5000/logout', { method: 'POST', credentials: 'include' });
+      await fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' });
       navigate('/', { replace: true });
     } catch (err) {
       navigate('/');

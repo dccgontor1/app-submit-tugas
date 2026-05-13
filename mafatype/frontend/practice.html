@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latihan Teks — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        /* ── Practice Page ───────────────────────────── */
+        .practice-hero {
+            text-align: center;
+        }
+
+        .practice-hero h1 {
+            font-size: 1.95rem;
+            font-weight: 900;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: .4rem;
+        }
+
+        .practice-hero p {
+            color: var(--text-2);
+            font-size: .95rem;
+        }
+
+        /* ── Filters ─────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .diff-badge {
+            display: inline-block;
+            padding: .18rem .55rem;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .diff-easy {
+            background: rgba(34, 197, 94, .15);
+            color: #16a34a;
+        }
+
+        .diff-medium {
+            background: rgba(var(--primary-rgb), .15);
+            color: var(--primary);
+        }
+
+        .diff-hard {
+            background: rgba(239, 68, 68, .15);
+            color: #dc2626;
+        }
+
+        /* ── Text Cards Grid ─────────────────────────── */
+        .texts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .text-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .text-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .text-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: .5rem;
+        }
+
+        .text-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .text-card-meta {
+            font-size: .78rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: .75rem;
+        }
+
+        .text-card-score {
+            font-size: .82rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .text-card-score span {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* ── Typing Panel ────────────────────────────── */
+        #practice-view {
+            display: none;
+        }
+
+        .practice-back {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            cursor: pointer;
+            transition: color .2s;
+        }
+
+        .practice-back:hover {
+            color: var(--primary);
+        }
+
+        .practice-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Real-time stats bar */
+        .stat-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            padding: .5rem .75rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+        }
+
+        .stat-pill-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-pill-label {
+            font-size: .65rem;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: .15rem;
+        }
+
+        /* Text display — word-level sync with typing.html */
+        .word-display {
+            font-family: var(--mono);
+            font-size: 1.6rem;
+            line-height: 2.8rem;
+            height: 9.4rem;
+            /* exactly 3 rows: 3 × 2.8rem + 1rem padding */
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            user-select: none;
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .words-inner {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.2rem 0.6rem;
+            align-content: flex-start;
+            padding: 0.5rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        .word {
+            color: var(--text-muted);
+            transition: color var(--transition), background var(--transition);
+            border-radius: 4px;
+            padding: 0 3px;
+        }
+
+        .word.active {
+            color: var(--text);
+            background: rgba(var(--primary-rgb), .13);
+            outline: 1px solid var(--primary);
+        }
+
+        .word.correct {
+            color: var(--correct);
+        }
+
+        .word.wrong {
+            color: var(--wrong);
+        }
+
+        .char.correct, .word.correct .char {
+            color: #16a34a !important; /* Force success green as requested */
+        }
+
+        /* Support for multi-paragraph in word-level engine */
+        .word.newline-br {
+            flex-basis: 100%;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .newline-mark {
+            font-size: 0.8em;
+            opacity: 0.5;
+            margin-left: 2px;
+        }
+
+        .char-pending {
+            color: var(--text-muted);
+        }
+
+        .practice-input {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            z-index: -1 !important;
+            height: 0 !important;
+            width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            outline: none !important;
+        }
+
+        /* Progress bar */
+        .practice-progress-wrap {
+            height: .45rem;
+            background: var(--surface-2);
+            border-radius: 999px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .practice-progress-bar {
+            height: 100%;
+            background: var(--grad);
+            border-radius: 999px;
+            width: 0%;
+            transition: width .15s ease-out;
+        }
+
+        /* ── Completion Modal ────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            display: none;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem 2.5rem;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-emoji {
+            font-size: 3.5rem;
+            margin-bottom: .5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .modal-stat {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+            padding: .875rem;
+        }
+
+        .modal-stat-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .modal-stat-lab {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: .75rem;
+            justify-content: center;
+        }
+
+        /* ── History Panel ───────────────────────────── */
+        .history-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .82rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: color .2s;
+        }
+
+        .history-toggle:hover {
+            color: var(--primary);
+        }
+
+        .history-panel {
+            display: none;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+        }
+
+        .practice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            gap: 1rem;
+        }
+
+        .practice-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0;
+            color: var(--text-color);
+        }
+
+        .history-panel h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: .9rem;
+        }
+
+        /* ── Keyboard Toggle ── */
+        .kb-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .kb-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .kb-toggle-label:hover {
+            color: var(--primary);
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--surface-2);
+            border: 1px solid var(--border);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+            background-color: white;
+        }
+
+        /* Virtual Keyboard & Hands */
+        .keyboard-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .keyboard {
+            background: var(--surface-2);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            width: fit-content;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
+            margin: 0 auto;
+        }
+
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .kb-key {
+            width: 38px;
+            height: 38px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+            user-select: none;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+
+        .kb-key.highlight {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            border-bottom-color: var(--primary-h);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .kb-key.active-press {
+            background: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+            border-bottom-color: transparent !important;
+            transform: translateY(2px) !important;
+            box-shadow: none !important;
+        }
+
+        .kb-key.wide-1 { width: 55px; } /* Tab, \ */
+        .kb-key.wide-2 { width: 68px; } /* Caps Lock, Enter */
+        .kb-key.wide-3 { width: 85px; } /* Shift */
+        .kb-key.wide-4 { width: 50px; } /* Ctrl, Alt, Win */
+        .kb-key.space { width: 250px; } /* Space */
+
+        /* Improved Hand Visuals */
+        .visual-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0 2rem;
+        }
+
+        .hand-container {
+            display: flex;
+            gap: 4rem;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .hand-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hand-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .hand {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            height: 60px;
+            padding: 0 10px;
+        }
+
+        .finger {
+            width: 24px;
+            background: var(--border);
+            border-radius: 12px 12px 4px 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            opacity: 0.4;
+        }
+
+        .finger.active {
+            background: var(--primary);
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .finger.active-press {
+            background: var(--primary) !important;
+            opacity: 1 !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.4) !important;
+        }
+
+        .f-pinky { height: 35px; }
+        .f-ring { height: 50px; }
+        .f-middle { height: 60px; }
+        .f-index { height: 55px; }
+        .f-thumb { height: 35px; }
+
+        .kb-key::after {
+            content: attr(data-finger);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 20;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .kb-key:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .kb-key::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--primary) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 21;
+            pointer-events: none;
+        }
+
+        .kb-key:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .kb-key.hover-active-key {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            border-bottom-color: var(--primary-h);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .finger::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.4);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .finger:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .finger:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--primary) transparent transparent transparent;
+            opacity: 1;
+            visibility: visible;
+            z-index: 11;
+        }
+
+        .finger.active, .finger.hover-active {
+            background: var(--primary);
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .kb-key { width: 30px; height: 30px; font-size: 0.7rem; }
+            .kb-key.wide-1 { width: 45px; }
+            .kb-key.wide-2 { width: 55px; }
+            .kb-key.wide-3 { width: 70px; }
+            .kb-key.wide-4 { width: 40px; }
+            .kb-key.space { width: 200px; }
+            .hand-container { gap: 2rem; }
+        }
+
+        /* Arabic Overrides */
+        [lang="ar"] .word-display,
+        .word-display[lang="ar"] {
+            font-family: var(--font-ar) !important;
+            font-size: 2rem;
+            line-height: normal;
+            direction: rtl;
+            gap: 1.25rem;
+        }
+
+        [lang="ar"] .practice-input,
+        .practice-input[lang="ar"] {
+            font-family: var(--font-ar) !important;
+            font-size: 1.6rem;
+            direction: rtl;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" class="active" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width:900px;">
+
+        <!-- ═══ BROWSE VIEW ═══ -->
+        <div id="browse-view">
+            <!-- Hero -->
+            <div class="card" style="margin-bottom:1.75rem; text-align:center; padding:1.5rem 2rem;">
+                <div class="practice-hero">
+                    <h1 data-i18n="practice_hero_title">✍️ Latihan Teks</h1>
+                    <p data-i18n="practice_hero_subtitle">Pilih teks latihan dan asah kecepatan mengetikmu dengan paragraf nyata.</p>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="pills" id="lang-pills">
+                    <button class="pill active" data-lang="" data-i18n="hist_all">Semua Bahasa</button>
+                    <button class="pill" data-lang="en">🇺🇸 EN</button>
+                    <button class="pill" data-lang="id">🇮🇩 ID</button>
+                    <button class="pill" data-lang="ar">🇸🇦 AR</button>
+                </div>
+                <div class="pills" id="diff-pills">
+                    <button class="pill active" data-diff="" data-i18n="practice_filter_all">Semua Level</button>
+                    <button class="pill" data-diff="easy" data-i18n="practice_filter_easy">Easy</button>
+                    <button class="pill" data-diff="medium" data-i18n="practice_filter_medium">Medium</button>
+                    <button class="pill" data-diff="hard" data-i18n="practice_filter_hard">Hard</button>
+                </div>
+            </div>
+
+            <div id="texts-grid" class="texts-grid">
+                <div class="empty-msg" data-i18n="loading">Memuat teks…</div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="prac-pagination" style="display:flex; justify-content:center; gap:.75rem; margin-top:2.5rem; margin-bottom:2rem;"></div>
+        </div>
+
+        <!-- ═══ TYPING VIEW ═══ -->
+        <div id="practice-view">
+            <div class="practice-back" onclick="backToBrowse()" data-i18n="login_back_home">← Kembali ke daftar teks</div>
+
+            <div class="card">
+                <div class="practice-header">
+                    <div class="practice-title" id="practice-title">—</div>
+                    <div class="kb-toggle-container">
+                        <label class="kb-toggle-label">
+                            <span data-i18n="show_keyboard">Show Keyboard</span>
+                            <div class="switch">
+                                <input type="checkbox" id="kb-toggle-chk" checked onchange="toggleKeyboard(this.checked)">
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <label class="kb-toggle-label">
+                            <span data-i18n="keyboard_layout">Arabic Layout</span>
+                            <div class="switch">
+                                <input type="checkbox" id="kb-layout-chk" onchange="switchKeyboardLayout(this.checked ? 'arabic' : 'latin')">
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="practice-desc" id="practice-desc"
+                    style="margin-bottom:1.5rem; color:var(--text-muted); font-size:0.95rem; line-height:1.5;"></div>
+
+                <div class="stat-bar">
+                    <div class="stat-pill">
+                        <div class="stat-pill-value" id="rt-wpm">0</div>
+                        <div class="stat-pill-label" data-i18n="wpm">WPM</div>
+                    </div>
+                    <div class="stat-pill">
+                        <div class="stat-pill-value" id="rt-acc">100%</div>
+                        <div class="stat-pill-label" data-i18n="accuracy">Accuracy</div>
+                    </div>
+                    <div class="stat-pill">
+                        <div class="stat-pill-value" id="rt-err">0</div>
+                        <div class="stat-pill-label" data-i18n="errors">Errors</div>
+                    </div>
+                    <div class="stat-pill">
+                        <div class="stat-pill-value" id="rt-time">00:00</div>
+                        <div class="stat-pill-label" data-i18n="time">Time</div>
+                    </div>
+                </div>
+
+                <div class="practice-progress-wrap">
+                    <div class="practice-progress-bar" id="progress-bar"></div>
+                </div>
+
+                <div id="word-display" class="word-display" spellcheck="false" autocorrect="off"></div>
+
+                <input type="text" id="practice-input" class="practice-input" 
+                    style="position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; width: 0; height: 0;"
+                    autocomplete="off" spellcheck="false" autocorrect="off" onpaste="return false;" oncopy="return false;">
+
+
+                <div class="keyboard-area" id="kb-area">
+                    <div class="keyboard" id="keyboard">
+                        <!-- Row 1: Numbers & Symbols -->
+                        <div class="kb-row">
+                            <div class="kb-key" data-key="`" data-finger="Left Pinky">`</div>
+                            <div class="kb-key" data-key="1" data-finger="Left Pinky">1</div>
+                            <div class="kb-key" data-key="2" data-finger="Left Ring">2</div>
+                            <div class="kb-key" data-key="3" data-finger="Left Middle">3</div>
+                            <div class="kb-key" data-key="4" data-finger="Left Index">4</div>
+                            <div class="kb-key" data-key="5" data-finger="Left Index">5</div>
+                            <div class="kb-key" data-key="6" data-finger="Right Index">6</div>
+                            <div class="kb-key" data-key="7" data-finger="Right Index">7</div>
+                            <div class="kb-key" data-key="8" data-finger="Right Middle">8</div>
+                            <div class="kb-key" data-key="9" data-finger="Right Ring">9</div>
+                            <div class="kb-key" data-key="0" data-finger="Right Pinky">0</div>
+                            <div class="kb-key" data-key="-" data-finger="Right Pinky">-</div>
+                            <div class="kb-key" data-key="=" data-finger="Right Pinky">=</div>
+                            <div class="kb-key wide-2" data-key="backspace" data-finger="Right Pinky">Bksp</div>
+                        </div>
+                        <!-- Row 2: QWERTY -->
+                        <div class="kb-row">
+                            <div class="kb-key wide-1" data-key="tab" data-finger="Left Pinky">Tab</div>
+                            <div class="kb-key" data-key="q" data-finger="Left Pinky">Q</div>
+                            <div class="kb-key" data-key="w" data-finger="Left Ring">W</div>
+                            <div class="kb-key" data-key="e" data-finger="Left Middle">E</div>
+                            <div class="kb-key" data-key="r" data-finger="Left Index">R</div>
+                            <div class="kb-key" data-key="t" data-finger="Left Index">T</div>
+                            <div class="kb-key" data-key="y" data-finger="Right Index">Y</div>
+                            <div class="kb-key" data-key="u" data-finger="Right Index">U</div>
+                            <div class="kb-key" data-key="i" data-finger="Right Middle">I</div>
+                            <div class="kb-key" data-key="o" data-finger="Right Ring">O</div>
+                            <div class="kb-key" data-key="p" data-finger="Right Pinky">P</div>
+                            <div class="kb-key" data-key="[" data-finger="Right Pinky">[</div>
+                            <div class="kb-key" data-key="]" data-finger="Right Pinky">]</div>
+                            <div class="kb-key wide-1" data-key="\\" data-finger="Right Pinky">\</div>
+                        </div>
+                        <!-- Row 3: ASDFGH -->
+                        <div class="kb-row">
+                            <div class="kb-key wide-2" data-key="capslock" data-finger="Left Pinky">Caps</div>
+                            <div class="kb-key" data-key="a" data-finger="Left Pinky">A</div>
+                            <div class="kb-key" data-key="s" data-finger="Left Ring">S</div>
+                            <div class="kb-key" data-key="d" data-finger="Left Middle">D</div>
+                            <div class="kb-key" data-key="f" data-finger="Left Index">F</div>
+                            <div class="kb-key" data-key="g" data-finger="Left Index">G</div>
+                            <div class="kb-key" data-key="h" data-finger="Right Index">H</div>
+                            <div class="kb-key" data-key="j" data-finger="Right Index">J</div>
+                            <div class="kb-key" data-key="k" data-finger="Right Middle">K</div>
+                            <div class="kb-key" data-key="l" data-finger="Right Ring">L</div>
+                            <div class="kb-key" data-key=";" data-finger="Right Pinky">;</div>
+                            <div class="kb-key" data-key="'" data-finger="Right Pinky">'</div>
+                            <div class="kb-key wide-2" data-key="enter" data-finger="Right Pinky">Enter</div>
+                        </div>
+                        <!-- Row 4: ZXCVBNM -->
+                        <div class="kb-row">
+                            <div class="kb-key wide-3" data-key="shift-l" data-finger="Left Pinky">Shift</div>
+                            <div class="kb-key" data-key="z" data-finger="Left Pinky">Z</div>
+                            <div class="kb-key" data-key="x" data-finger="Left Ring">X</div>
+                            <div class="kb-key" data-key="c" data-finger="Left Middle">C</div>
+                            <div class="kb-key" data-key="v" data-finger="Left Index">V</div>
+                            <div class="kb-key" data-key="b" data-finger="Left Index">B</div>
+                            <div class="kb-key" data-key="n" data-finger="Right Index">N</div>
+                            <div class="kb-key" data-key="m" data-finger="Right Index">M</div>
+                            <div class="kb-key" data-key="," data-finger="Right Middle">,</div>
+                            <div class="kb-key" data-key="." data-finger="Right Ring">.</div>
+                            <div class="kb-key" data-key="/" data-finger="Right Pinky">/</div>
+                            <div class="kb-key wide-3" data-key="shift-r" data-finger="Right Pinky">Shift</div>
+                        </div>
+                        <!-- Row 5: Space -->
+                        <div class="kb-row">
+                            <div class="kb-key wide-4" data-key="ctrl-l" data-finger="Left Pinky">Ctrl</div>
+                            <div class="kb-key wide-4" data-key="win-l" data-finger="Left Thumb">Win</div>
+                            <div class="kb-key wide-4" data-key="alt-l" data-finger="Left Thumb">Alt</div>
+                            <div class="kb-key space" data-key=" " data-finger="Thumb">Space</div>
+                            <div class="kb-key wide-4" data-key="alt-r" data-finger="Right Thumb">Alt</div>
+                            <div class="kb-key wide-4" data-key="win-r" data-finger="Right Thumb">Win</div>
+                            <div class="kb-key wide-4" data-key="ctrl-r" data-finger="Right Pinky">Ctrl</div>
+                        </div>
+                    </div>
+                
+                    <div class="visual-footer">
+                        <div class="hand-container">
+                            <div class="hand-visual">
+                                <!-- <div class="hand-label">Left Hand</div> -->
+                                <div class="hand">
+                                    <div class="finger f-pinky" id="hand-l-pinky" data-label="Pinky • ` 1 Q A Z Tab Caps Shift L-Ctrl" data-keys="` 1 Q A Z Tab Caps Shift L-Ctrl"></div>
+                                    <div class="finger f-ring" id="hand-l-ring" data-label="Ring • 2 W S X" data-keys="2 W S X"></div>
+                                    <div class="finger f-middle" id="hand-l-middle" data-label="Middle • 3 E D C" data-keys="3 E D C"></div>
+                                    <div class="finger f-index" id="hand-l-index" data-label="Index • 4 5 R T F G V B" data-keys="4 5 R T F G V B"></div>
+                                    <div class="finger f-thumb" id="hand-l-thumb" data-label="Thumb • SPACE Win Alt" data-keys="SPACE Win Alt"></div>
+                                </div>
+                            </div>
+                            <div class="hand-visual">
+                                <!-- <div class="hand-label">Right Hand</div> -->
+                                <div class="hand" style="flex-direction: row-reverse;">
+                                    <div class="finger f-pinky" id="hand-r-pinky" data-label="Pinky • 0 - = P [ ] \ ; ' Enter / Shift R-Ctrl Backspace" data-keys="0 - = P [ ] \ ; ' Enter / Shift R-Ctrl backspace"></div>
+                                    <div class="finger f-ring" id="hand-r-ring" data-label="Ring • 9 O L ." data-keys="9 O L ."></div>
+                                    <div class="finger f-middle" id="hand-r-middle" data-label="Middle • 8 I K ," data-keys="8 I K ,"></div>
+                                    <div class="finger f-index" id="hand-r-index" data-label="Index • 6 7 Y U H J N M" data-keys="6 7 Y U H J N M"></div>
+                                    <div class="finger f-thumb" id="hand-r-thumb" data-label="Thumb • SPACE Alt Win" data-keys="SPACE Alt Win"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-panel" id="hist-panel">
+                    <h4 style="margin-top: 1.25rem; font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;" data-i18n="history">📊
+                        Riwayat Percobaan Saya</h4>
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="hist_date">Tanggal</th>
+                                    <th data-i18n="wpm">WPM</th>
+                                    <th data-i18n="accuracy">Accuracy</th>
+                                    <th data-i18n="errors">Errors</th>
+                                    <th data-i18n="time">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hist-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="hist-pagination" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══ RESULT MODAL ═══ -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-box">
+            <div class="modal-emoji">🎉</div>
+            <div class="modal-title" data-i18n="practice_finish">Latihan Selesai!</div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-wpm">—</div>
+                    <div class="modal-stat-lab" data-i18n="wpm">WPM</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-acc">—</div>
+                    <div class="modal-stat-lab" data-i18n="accuracy">Accuracy</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-err">—</div>
+                    <div class="modal-stat-lab" data-i18n="errors">Errors</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-time">—</div>
+                    <div class="modal-stat-lab" data-i18n="time">Waktu</div>
+                </div>
+            </div>
+            <div id="m-rating-box" style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--primary); border-radius: 12px; background: rgba(var(--primary-rgb), 0.05); text-align: center;">
+                <div id="m-rating" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">—</div>
+                <div id="m-desc" style="font-size: 0.9rem; color: var(--text-muted);">—</div>
+            </div>
+            <div id="m-pass-msg" style="margin-top: 1rem; font-weight: 700; font-size: 1.1rem; text-align: center;"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="retryPractice()" data-i18n="retry">🔄 Retry</button>
+                <button class="btn btn-primary" onclick="nextText()" data-i18n="next">Next Text →</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        const API = '/mafatype/backend-php/api.php?action=';
+        let user = null;
+        let texts = [];
+        let currentText = null;
+        let curLangFilter = '';
+        let curDiffFilter = '';
+
+        // ── Typing State ─────────────────────────────────────────────────────────
+        let startTime = null;
+        let timerInterval = null;
+        let errors = 0;
+        let totalTyped = 0;
+        let correctChars = 0;
+        let isDone = false;
+        let completedLength = 0;
+        let committedCorrect = 0;
+        let committedErrors = 0;
+        let currentWordIndex = 0;
+        let correctKeystrokes = 0;
+        let wrongKeystrokes = 0;
+        let totalKeystrokes = 0;
+
+        // Audio Context for sounds
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            if (type === 'type') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.05);
+            } else if (type === 'error') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            }
+        }
+
+        // ── Init ─────────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            user = App.getUser();
+            loadTexts();
+
+            // Initialize Arabic support in mappings
+            const arabicFingerMap = {
+                'ذ': 'l-pinky', '١': 'l-pinky', 'ض': 'l-pinky', 'ش': 'l-pinky', 'ئ': 'l-pinky',
+                '٢': 'l-ring', 'ص': 'l-ring', 'س': 'l-ring', 'ء': 'l-ring',
+                '٣': 'l-middle', 'ث': 'l-middle', 'ي': 'l-middle', 'ؤ': 'l-middle',
+                '٤': 'l-index', 'ق': 'l-index', 'ب': 'l-index', 'ر': 'l-index',
+                '٥': 'l-index', 'ف': 'l-index', 'ل': 'l-index', 'لا': 'l-index',
+                '٦': 'r-index', 'غ': 'r-index', 'ا': 'r-index', 'ى': 'r-index',
+                '٧': 'r-index', 'ع': 'r-index', 'ت': 'r-index', 'ة': 'r-index',
+                '٨': 'r-middle', 'ه': 'r-middle', 'ن': 'r-middle', 'و': 'r-middle',
+                '٩': 'r-ring', 'خ': 'r-ring', 'م': 'r-ring', 'ز': 'r-ring',
+                '٠': 'r-pinky', 'ح': 'r-pinky', 'ك': 'r-pinky', 'ظ': 'r-pinky',
+                'ج': 'r-pinky', 'د': 'r-pinky', 'ط': 'r-pinky'
+            };
+            Object.assign(fingerMap, arabicFingerMap);
+
+            const arabicShiftMap = {
+                'أ': ['h', 'shift-l'], 'إ': ['y', 'shift-l'], 'آ': ['n', 'shift-l'],
+                'لأ': ['g', 'shift-r'], 'لإ': ['t', 'shift-r'], 'لآ': ['b', 'shift-r'],
+                'ـ': ['j', 'shift-l'], '،': ['k', 'shift-l'], '؛': ['p', 'shift-l'], '؟': ['/', 'shift-l']
+            };
+            Object.assign(shiftMap, arabicShiftMap);
+
+            // Intercept Audio Context on first interaction
+            document.body.addEventListener('mousedown', initAudio, { once: true });
+            document.body.addEventListener('keydown', initAudio, { once: true });
+
+            // Language filter
+            document.getElementById('lang-pills').addEventListener('click', e => {
+                const btn = e.target.closest('.pill');
+                if (!btn) return;
+                document.querySelectorAll('#lang-pills .pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                curLangFilter = btn.dataset.lang;
+                loadTexts();
+            });
+
+            // Difficulty filter
+            document.getElementById('diff-pills').addEventListener('click', e => {
+                const btn = e.target.closest('.pill');
+                if (!btn) return;
+                document.querySelectorAll('#diff-pills .pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                curDiffFilter = btn.dataset.diff;
+                loadTexts();
+            });
+
+            // Check for ID in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const textId = urlParams.get('id');
+            if (textId) {
+                startPracticeById(textId);
+            }
+
+            // Keyboard Toggle preference
+            const kbPref = localStorage.getItem('mafatype_show_kb');
+            if (kbPref === 'false') {
+                const chk = document.getElementById('kb-toggle-chk');
+                if (chk) chk.checked = false;
+                toggleKeyboard(false);
+            }
+
+            const kbLayoutPref = localStorage.getItem('mafatype_kb_layout');
+            if (kbLayoutPref === 'arabic') {
+                const chk = document.getElementById('kb-layout-chk');
+                if (chk) chk.checked = true;
+                switchKeyboardLayout('arabic');
+            }
+        });
+
+        // Input handler
+        const inputEl = document.getElementById('practice-input');
+        inputEl.addEventListener('input', handleInput);
+
+        // Auto-focus logic: Click anywhere on the card to focus hidden input
+        document.querySelector('#practice-view .card').addEventListener('click', () => {
+            inputEl.focus();
+        });
+        inputEl.addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                const typed = inputEl.value;
+                if (typed.length === 0) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                const content = currentText.content;
+                const wordsList = document.querySelectorAll('#words-inner .word');
+
+                // Find next word boundary (space or newline)
+                let nextSpace = content.indexOf(' ', completedLength);
+                let nextNewline = content.indexOf('\n', completedLength);
+                let wordEnd;
+                
+                if (nextSpace === -1 && nextNewline === -1) wordEnd = content.length;
+                else if (nextSpace === -1) wordEnd = nextNewline;
+                else if (nextNewline === -1) wordEnd = nextSpace;
+                else wordEnd = Math.min(nextSpace, nextNewline);
+
+                const targetWord = content.slice(completedLength, wordEnd);
+                
+                // Force correct: Only allow space/enter if word is correct
+                if (typed !== targetWord) {
+                    e.preventDefault();
+                    if (e.key.length === 1) totalKeystrokes++;
+                    return;
+                }
+
+                e.preventDefault();
+                totalKeystrokes++;
+                const isCorrectWord = typed === targetWord;
+
+                const wordEl = wordsList[currentWordIndex];
+                wordEl.classList.remove('active', 'wrong');
+
+                if (isCorrectWord) {
+                    wordEl.classList.add('correct');
+                    // Removed: correctKeystrokes += targetWord.length; // Already handled in handleInput
+                } else {
+                    wordEl.classList.add('wrong');
+                    errors++;
+                }
+
+                completedLength += targetWord.length;
+
+                // Handle separator (space or enter)
+                const nextChar = content[completedLength];
+                if (nextChar === ' ' || nextChar === '\n') {
+                    const isCorrectKey = (nextChar === ' ' && e.key === ' ') || (nextChar === '\n' && e.key === 'Enter');
+                    
+                    if (isCorrectKey) {
+                        correctKeystrokes++;
+                    } else {
+                        errors++;
+                    }
+                    completedLength++;
+                }
+
+                // Skip any additional separators if they exist (though split/regex above handles 1-1)
+                // But specifically for the double space issue: move to the next .word
+                currentWordIndex++;
+                inputEl.value = '';
+                lastInputLength = 0;
+                updateWordHighlight();
+                handleInput({ target: inputEl });
+            } else if (e.key.length === 1 || e.key === 'Backspace') {
+                totalKeystrokes++;
+            }
+        });
+
+        function updateWordHighlight() {
+            if (!currentText) return;
+            const content = currentText.content;
+            const wordsList = document.querySelectorAll('#words-inner .word');
+
+            // Remove existing highlights
+            wordsList.forEach(w => w.classList.remove('active'));
+
+            if (currentWordIndex >= wordsList.length) return;
+
+            const activeWord = wordsList[currentWordIndex];
+            if (activeWord) {
+                activeWord.classList.add('active');
+            }
+
+            scrollToActive();
+        }
+
+        function scrollToActive() {
+            // Support for multi-paragraph in word-level engine
+            const display = document.getElementById('word-display');
+            const wordsInner = document.getElementById('words-inner');
+            const active = wordsInner.querySelector('.word.active');
+            if (active) {
+                const lineH = 2.8 * 16;
+                const rowNum = Math.round(active.offsetTop / lineH);
+                if (rowNum >= 2) {
+                    wordsInner.style.transform = `translateY(${-(rowNum - 1) * lineH}px)`;
+                } else {
+                    wordsInner.style.transform = `translateY(0)`;
+                }
+            }
+            
+            updateKeyboard();
+        }
+
+        const fingerMap = {
+            '`': 'l-pinky', '1': 'l-pinky', 'q': 'l-pinky', 'a': 'l-pinky', 'z': 'l-pinky', '~': 'l-pinky', '!': 'l-pinky', 'Q': 'l-pinky', 'A': 'l-pinky', 'Z': 'l-pinky',
+            '2': 'l-ring', 'w': 'l-ring', 's': 'l-ring', 'x': 'l-ring', '@': 'l-ring', 'W': 'l-ring', 'S': 'l-ring', 'X': 'l-ring',
+            '3': 'l-middle', 'e': 'l-middle', 'd': 'l-middle', 'c': 'l-middle', '#': 'l-middle', 'E': 'l-middle', 'D': 'l-middle', 'C': 'l-middle',
+            '4': 'l-index', 'r': 'l-index', 'f': 'l-index', 'v': 'l-index', '$': 'l-index', 'R': 'l-index', 'F': 'l-index', 'V': 'l-index',
+            '5': 'l-index', 't': 'l-index', 'g': 'l-index', 'b': 'l-index', '%': 'l-index', 'T': 'l-index', 'G': 'l-index', 'B': 'l-index',
+            '6': 'r-index', 'y': 'r-index', 'h': 'r-index', 'n': 'r-index', '^': 'r-index', 'Y': 'r-index', 'H': 'r-index', 'N': 'r-index',
+            '7': 'r-index', 'u': 'r-index', 'j': 'r-index', 'm': 'r-index', '&': 'r-index', 'U': 'r-index', 'J': 'r-index', 'M': 'r-index',
+            '8': 'r-middle', 'i': 'r-middle', 'k': 'r-middle', ',': 'r-middle', '*': 'r-middle', 'I': 'r-middle', 'K': 'r-middle', '<': 'r-middle',
+            '9': 'r-ring', 'o': 'r-ring', 'l': 'r-ring', '.': 'r-ring', '(': 'r-ring', 'O': 'r-ring', 'L': 'r-ring', '>': 'r-ring',
+            '0': 'r-pinky', 'p': 'r-pinky', ';': 'r-pinky', '/': 'r-pinky', ')': 'r-pinky', 'P': 'r-pinky', ':': 'r-pinky', '?': 'r-pinky',
+            '-': 'r-pinky', '[': 'r-pinky', "'": 'r-pinky', '_': 'r-pinky', '{': 'r-pinky', '"': 'r-pinky',
+            '=': 'r-pinky', ']': 'r-pinky', '+': 'r-pinky', '}': 'r-pinky', '\\': 'r-pinky', '|': 'r-pinky',
+            ' ': 'thumb', 'shift-l': 'l-pinky', 'shift-r': 'r-pinky', 'enter': 'r-pinky', 'backspace': 'r-pinky', 
+            'tab': 'l-pinky', 'capslock': 'l-pinky', 'ctrl-l': 'l-pinky', 'win-l': 'l-thumb', 'alt-l': 'l-thumb', 
+            'alt-r': 'r-thumb', 'win-r': 'r-thumb', 'ctrl-r': 'r-pinky'
+        };
+
+        const keyCodeToDataKey = {
+            'Backquote': '`', 'Digit1': '1', 'Digit2': '2', 'Digit3': '3', 'Digit4': '4', 'Digit5': '5', 'Digit6': '6', 'Digit7': '7', 'Digit8': '8', 'Digit9': '9', 'Digit0': '0', 'Minus': '-', 'Equal': '=', 'Backspace': 'backspace',
+            'Tab': 'tab', 'KeyQ': 'q', 'KeyW': 'w', 'KeyE': 'e', 'KeyR': 'r', 'KeyT': 't', 'KeyY': 'y', 'KeyU': 'u', 'KeyI': 'i', 'KeyO': 'o', 'KeyP': 'p', 'BracketLeft': '[', 'BracketRight': ']', 'Backslash': '\\',
+            'CapsLock': 'capslock', 'KeyA': 'a', 'KeyS': 's', 'KeyD': 'd', 'KeyF': 'f', 'KeyG': 'g', 'KeyH': 'h', 'KeyJ': 'j', 'KeyK': 'k', 'KeyL': 'l', 'Semicolon': ';', 'Quote': "'", 'Enter': 'enter',
+            'ShiftLeft': 'shift-l', 'KeyZ': 'z', 'KeyX': 'x', 'KeyC': 'c', 'KeyV': 'v', 'KeyB': 'b', 'KeyN': 'n', 'KeyM': 'm', 'Comma': ',', 'Period': '.', 'Slash': '/', 'ShiftRight': 'shift-r',
+            'ControlLeft': 'ctrl-l', 'MetaLeft': 'win-l', 'AltLeft': 'alt-l', 'Space': ' ', 'AltRight': 'alt-r', 'MetaRight': 'win-r', 'ControlRight': 'ctrl-r'
+        };
+
+        const shiftMap = {
+            '~': ['`','shift-r'], '!': ['1','shift-r'], '@': ['2','shift-r'], '#': ['3','shift-r'],
+            '$': ['4','shift-r'], '%': ['5','shift-r'], '^': ['6','shift-l'], '&': ['7','shift-l'],
+            '*': ['8','shift-l'], '(': ['9','shift-l'], ')': ['0','shift-l'], '_': ['-','shift-l'],
+            '+': ['=','shift-l'], '{': ['[','shift-l'], '}': [']','shift-l'], '|': ['\\','shift-l'],
+            ':': [';','shift-l'], '"': ["'",'shift-l'], '<': [',','shift-l'], '>': ['.','shift-l'],
+            '?': ['/','shift-l']
+        };
+
+        function getRequiredKeysAndFingers(char) {
+            let baseKey = char.toLowerCase();
+            let shiftRequired = false;
+            let shiftKey = null;
+
+            if (char === ' ') return { keys: [' '], fingers: ['hand-l-thumb', 'hand-r-thumb'] };
+            if (char === '\n') return { keys: ['enter'], fingers: ['hand-r-pinky'] };
+
+            const currentLayout = localStorage.getItem('mafatype_kb_layout') || 'latin';
+
+            if (char !== char.toLowerCase() && char.toUpperCase() === char && char.match(/[A-Z]/)) {
+                shiftRequired = true;
+                const tempFinger = fingerMap[baseKey];
+                shiftKey = (tempFinger && tempFinger.startsWith('l-')) ? 'shift-r' : 'shift-l';
+            } else if (shiftMap[char]) {
+                shiftRequired = true;
+                baseKey = shiftMap[char][0];
+                shiftKey = shiftMap[char][1];
+            } else {
+                // Check if current layout requires a specific physical key
+                if (currentLayout === 'arabic') {
+                    if (reverseLayouts.arabic[char]) {
+                        baseKey = reverseLayouts.arabic[char];
+                    } else if (reverseLayouts.arabicShift[char]) {
+                        baseKey = reverseLayouts.arabicShift[char];
+                        shiftRequired = true;
+                        // Use standard shift side for the physical key
+                        const finger = fingerMap[baseKey];
+                        shiftKey = (finger && finger.startsWith('l-')) ? 'shift-r' : 'shift-l';
+                    }
+                }
+            }
+
+            const keys = [baseKey];
+            const fingers = [];
+            
+            // Resolve finger for the base key
+            const baseFinger = fingerMap[baseKey];
+            if (baseFinger) {
+                if (baseFinger === 'thumb') {
+                    fingers.push('hand-l-thumb', 'hand-r-thumb');
+                } else {
+                    fingers.push('hand-' + baseFinger);
+                }
+            }
+            
+            // Resolve finger for the shift key
+            if (shiftRequired && shiftKey) {
+                keys.push(shiftKey);
+                fingers.push(shiftKey === 'shift-l' ? 'hand-l-pinky' : 'hand-r-pinky');
+            }
+
+            return { keys, fingers };
+        }
+
+        function updateKeyboard() {
+            if (!currentText || isDone) {
+                document.querySelectorAll('.kb-key').forEach(k => k.classList.remove('highlight'));
+                document.querySelectorAll('.finger').forEach(f => f.classList.remove('active'));
+                return;
+            }
+
+            const inputEl = document.getElementById('practice-input');
+            const typedLen = inputEl ? inputEl.value.length : 0;
+            const currentIndex = completedLength + typedLen;
+
+            const content = currentText.content;
+            let nextChar = content[currentIndex];
+            if (!nextChar) {
+                document.querySelectorAll('.kb-key').forEach(k => k.classList.remove('highlight'));
+                document.querySelectorAll('.finger').forEach(f => f.classList.remove('active'));
+                return;
+            }
+
+            const { keys, fingers } = getRequiredKeysAndFingers(nextChar);
+
+            document.querySelectorAll('.kb-key').forEach(k => k.classList.remove('highlight'));
+            keys.forEach(k => {
+                const keyEls = Array.from(document.querySelectorAll('.kb-key'));
+                const keyEl = keyEls.find(el => el.getAttribute('data-key') === k);
+                if (keyEl) keyEl.classList.add('highlight');
+            });
+
+            document.querySelectorAll('.finger').forEach(f => f.classList.remove('active'));
+            fingers.forEach(fId => {
+                const fEl = document.getElementById(fId);
+                if (fEl) fEl.classList.add('active');
+            });
+        }
+
+        function initKeyboardInteractions() {
+            // Build reverse map for finger to keys
+            const fingerToKeys = {};
+            for (let char in fingerMap) {
+                const f = fingerMap[char];
+                if (char === ' ') continue; 
+                // Only consider primary lowercase representation
+                if (char.length === 1 && char === char.toUpperCase() && char.match(/[A-Z]/)) continue; 
+                
+                let fId = '';
+                if (f === 'thumb') fId = 'hand-l-thumb';
+                else if (f === 'l-thumb') fId = 'hand-l-thumb';
+                else if (f === 'r-thumb') fId = 'hand-r-thumb';
+                else fId = 'hand-' + f;
+
+                if (!fingerToKeys['hand-l-thumb']) fingerToKeys['hand-l-thumb'] = [];
+                if (!fingerToKeys['hand-r-thumb']) fingerToKeys['hand-r-thumb'] = [];
+                
+                if (f === 'thumb') {
+                    fingerToKeys['hand-l-thumb'].push(' ');
+                    fingerToKeys['hand-r-thumb'].push(' ');
+                } else {
+                    if (!fingerToKeys[fId]) fingerToKeys[fId] = [];
+                    fingerToKeys[fId].push(char);
+                }
+            }
+
+            // Key hover effect
+            document.querySelectorAll('.kb-key').forEach(keyEl => {
+                keyEl.addEventListener('mouseenter', (e) => {
+                    const char = e.target.getAttribute('data-key');
+                    if (!char) return;
+                    const f = fingerMap[char];
+                    if (f === 'thumb') {
+                        document.getElementById('hand-l-thumb')?.classList.add('hover-active');
+                        document.getElementById('hand-r-thumb')?.classList.add('hover-active');
+                    } else if (f) {
+                        const fId = (f === 'l-thumb' || f === 'r-thumb') ? 'hand-' + f : 'hand-' + f;
+                        document.getElementById(fId)?.classList.add('hover-active');
+                    }
+                });
+                keyEl.addEventListener('mouseleave', (e) => {
+                    const char = e.target.getAttribute('data-key');
+                    if (!char) return;
+                    const f = fingerMap[char];
+                    if (f === 'thumb') {
+                        document.getElementById('hand-l-thumb')?.classList.remove('hover-active');
+                        document.getElementById('hand-r-thumb')?.classList.remove('hover-active');
+                    } else if (f) {
+                        const fId = (f === 'l-thumb' || f === 'r-thumb') ? 'hand-' + f : 'hand-' + f;
+                        document.getElementById(fId)?.classList.remove('hover-active');
+                    }
+                });
+            });
+
+            // Finger hover effect
+            const allKeyEls = Array.from(document.querySelectorAll('.kb-key'));
+            document.querySelectorAll('.finger').forEach(fEl => {
+                fEl.addEventListener('mouseenter', (e) => {
+                    e.target.classList.add('hover-active');
+                    const fId = e.target.id;
+                    const keysStr = e.target.getAttribute('data-keys');
+                    if (!keysStr) return;
+                    
+                    const keys = keysStr.split(' ');
+                    keys.forEach(k => {
+                        let kStr = k;
+                        if (kStr === '\\') kStr = '\\\\';
+                        // Handle special display names in data-keys mapped to data-key
+                        if (kStr === 'SPACE') kStr = ' ';
+                        else if (kStr === 'L-Ctrl') kStr = 'ctrl-l';
+                        else if (kStr === 'R-Ctrl') kStr = 'ctrl-r';
+                        else if (kStr.toLowerCase() === 'win') kStr = fId.includes('-l-') ? 'win-l' : 'win-r';
+                        else if (kStr.toLowerCase() === 'alt') kStr = fId.includes('-l-') ? 'alt-l' : 'alt-r';
+                        else if (kStr.toLowerCase() === 'shift') kStr = fId.includes('-l-') ? 'shift-l' : 'shift-r';
+                        else if (kStr.toLowerCase() === 'caps') kStr = 'capslock';
+                        else if (kStr.toLowerCase() === 'tab') kStr = 'tab';
+                        else if (kStr.toLowerCase() === 'enter') kStr = 'enter';
+                        else kStr = kStr.toLowerCase();
+
+                        const keyEl = allKeyEls.find(el => el.getAttribute('data-key') === kStr);
+                        if (keyEl) keyEl.classList.add('hover-active-key');
+                    });
+                });
+                fEl.addEventListener('mouseleave', (e) => {
+                    e.target.classList.remove('hover-active');
+                    const fId = e.target.id;
+                    const keysStr = e.target.getAttribute('data-keys');
+                    if (!keysStr) return;
+                    
+                    const keys = keysStr.split(' ');
+                    keys.forEach(k => {
+                        let kStr = k;
+                        if (kStr === '\\') kStr = '\\\\';
+                        // Handle special display names in data-keys mapped to data-key
+                        if (kStr === 'SPACE') kStr = ' ';
+                        else if (kStr === 'L-Ctrl') kStr = 'ctrl-l';
+                        else if (kStr === 'R-Ctrl') kStr = 'ctrl-r';
+                        else if (kStr.toLowerCase() === 'win') kStr = fId.includes('-l-') ? 'win-l' : 'win-r';
+                        else if (kStr.toLowerCase() === 'alt') kStr = fId.includes('-l-') ? 'alt-l' : 'alt-r';
+                        else if (kStr.toLowerCase() === 'shift') kStr = fId.includes('-l-') ? 'shift-l' : 'shift-r';
+                        else if (kStr.toLowerCase() === 'caps') kStr = 'capslock';
+                        else if (kStr.toLowerCase() === 'tab') kStr = 'tab';
+                        else if (kStr.toLowerCase() === 'enter') kStr = 'enter';
+                        else kStr = kStr.toLowerCase();
+
+                        const keyEl = allKeyEls.find(el => el.getAttribute('data-key') === kStr);
+                        if (keyEl) keyEl.classList.remove('hover-active-key');
+                    });
+                });
+            });
+
+            // Physical key real-time highlight
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const modal = document.getElementById('result-modal');
+                    if (modal && modal.classList.contains('show')) {
+                        nextText();
+                        return;
+                    }
+                }
+                if (e.key === 'Shift') {
+                    isShifted = true;
+                    switchKeyboardLayout(); // Update visuals immediately
+                }
+                if (isDone || !currentText) return;
+                const dataKey = keyCodeToDataKey[e.code];
+                if (!dataKey) return;
+                
+                let kStr = dataKey;
+                if (kStr === '\\') kStr = '\\\\';
+                const keyEl = allKeyEls.find(el => el.getAttribute('data-key') === kStr);
+                if (keyEl) keyEl.classList.add('active-press');
+
+                const f = fingerMap[dataKey];
+                if (f === 'thumb') {
+                    document.getElementById('hand-l-thumb')?.classList.add('active-press');
+                    document.getElementById('hand-r-thumb')?.classList.add('active-press');
+                } else if (f) {
+                    const fId = (f === 'l-thumb' || f === 'r-thumb') ? 'hand-' + f : 'hand-' + f;
+                    document.getElementById(fId)?.classList.add('active-press');
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'Shift') {
+                    isShifted = false;
+                    switchKeyboardLayout(); // Revert visuals immediately
+                }
+                if (isDone || !currentText) return;
+                const dataKey = keyCodeToDataKey[e.code];
+                if (!dataKey) return;
+                
+                let kStr = dataKey;
+                if (kStr === '\\') kStr = '\\\\';
+                const keyEl = allKeyEls.find(el => el.getAttribute('data-key') === kStr);
+                if (keyEl) keyEl.classList.remove('active-press');
+
+                const f = fingerMap[dataKey];
+                if (f === 'thumb') {
+                    document.getElementById('hand-l-thumb')?.classList.remove('active-press');
+                    document.getElementById('hand-r-thumb')?.classList.remove('active-press');
+                } else if (f) {
+                    const fId = (f === 'l-thumb' || f === 'r-thumb') ? 'hand-' + f : 'hand-' + f;
+                    document.getElementById(fId)?.classList.remove('active-press');
+                }
+            });
+        }
+
+        let isShifted = false;
+
+        function toggleKeyboard(show) {
+            const kbArea = document.getElementById('kb-area');
+            if (kbArea) {
+                kbArea.style.display = show ? 'flex' : 'none';
+            }
+            localStorage.setItem('mafatype_show_kb', show);
+        }
+
+        const layouts = {
+            latin: {
+                '`': '`', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '0': '0', '-': '-', '=': '=',
+                'q': 'Q', 'w': 'W', 'e': 'E', 'r': 'R', 't': 'T', 'y': 'Y', 'u': 'U', 'i': 'I', 'o': 'O', 'p': 'P', '[': '[', ']': ']', '\\': '\\',
+                'a': 'A', 's': 'S', 'd': 'D', 'f': 'F', 'g': 'G', 'h': 'H', 'j': 'J', 'k': 'K', 'l': 'L', ';': ';', "'": "'",
+                'z': 'Z', 'x': 'X', 'c': 'C', 'v': 'V', 'b': 'B', 'n': 'N', 'm': 'M', ',': ',', '.': '.', '/': '/'
+            },
+            arabic: {
+                // Standard Arabic 101 keys
+                '`': 'ذ', '1': '١', '2': '٢', '3': '٣', '4': '٤', '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩', '0': '٠', '-': '-', '=': '=',
+                'q': 'ض', 'w': 'ص', 'e': 'ث', 'r': 'ق', 't': 'ف', 'y': 'غ', 'u': 'ع', 'i': 'ه', 'o': 'خ', 'p': 'ح', '[': 'ج', ']': 'د', '\\': '\\',
+                'a': 'ش', 's': 'س', 'd': 'ي', 'f': 'ب', 'g': 'ل', 'h': 'ا', 'j': 'ت', 'k': 'ن', 'l': 'م', ';': 'ك', "'": 'ط',
+                'z': 'ئ', 'x': 'ء', 'c': 'ؤ', 'v': 'ر', 'b': 'لا', 'n': 'ى', 'm': 'ة', ',': 'و', '.': 'ز', '/': 'ظ'
+            },
+            latinShift: {
+                '`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&', '8': '*', '9': '(', '0': ')', '-': '_', '=': '+',
+                'q': 'Q', 'w': 'W', 'e': 'E', 'r': 'R', 't': 'T', 'y': 'Y', 'u': 'U', 'i': 'I', 'o': 'O', 'p': 'P', '[': '{', ']': '}', '\\': '|',
+                'a': 'A', 's': 'S', 'd': 'D', 'f': 'F', 'g': 'G', 'h': 'H', 'j': 'J', 'k': 'K', 'l': 'L', ';': ':', "'": '"',
+                'z': 'Z', 'x': 'X', 'c': 'C', 'v': 'V', 'b': 'B', 'n': 'N', 'm': 'M', ',': '<', '.': '>', '/': '?'
+            },
+            arabicShift: {
+                '`': 'ّ', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&', '8': '*', '9': '(', '0': ')', '-': '_', '=': '+',
+                'q': 'َ', 'w': 'ً', 'e': 'ُ', 'r': 'ٌ', 't': 'لإ', 'y': 'إ', 'u': '`', 'i': '÷', 'o': '×', 'p': '؛', '[': '<', ']': '>', '\\': '|',
+                'a': 'ِ', 's': 'ٍ', 'd': '[', 'f': ']', 'g': 'لأ', 'h': 'أ', 'j': 'ـ', 'k': '،', 'l': '/', ';': ':', "'": '"',
+                'z': '~', 'x': 'ْ', 'c': '{', 'v': '}', 'b': 'لآ', 'n': 'آ', 'm': '’', ',': ',', '.': '.', '/': '؟'
+            }
+        };
+
+        const reverseLayouts = {
+            arabic: Object.fromEntries(Object.entries(layouts.arabic).map(([k, v]) => [v, k])),
+            arabicShift: Object.fromEntries(Object.entries(layouts.arabicShift).map(([k, v]) => [v, k]))
+        };
+
+        const fingerTooltips = {
+            latin: {
+                'hand-l-pinky': 'Pinky • ` 1 Q A Z Tab Caps Shift L-Ctrl',
+                'hand-l-ring': 'Ring • 2 W S X',
+                'hand-l-middle': 'Middle • 3 E D C',
+                'hand-l-index': 'Index • 4 5 R T F G V B',
+                'hand-l-thumb': 'Thumb • SPACE Win Alt',
+                'hand-r-pinky': 'Pinky • 0 - = P [ ] \\ ; \' Enter / Shift R-Ctrl Bksp',
+                'hand-r-ring': 'Ring • 9 O L .',
+                'hand-r-middle': 'Middle • 8 I K ,',
+                'hand-r-index': 'Index • 6 7 Y U H J N M',
+                'hand-r-thumb': 'Thumb • SPACE Alt Win'
+            },
+            arabic: {
+                'hand-l-pinky': 'Kelingking • ذ ١ ض ش ئ',
+                'hand-l-ring': 'Manis • ٢ ص س ء',
+                'hand-l-middle': 'Tengah • ٣ ث ي ؤ',
+                'hand-l-index': 'Telunjuk • ٤ ٥ ق ف ب ل لا ر',
+                'hand-l-thumb': 'Jempol • SPASI Win Alt',
+                'hand-r-pinky': 'Kelingking • ٠ - = ح ج د ك ط ظ TAB ENTER BKSP',
+                'hand-r-ring': 'Manis • ٩ خ م ز',
+                'hand-r-middle': 'Tengah • ٨ ه ن و',
+                'hand-r-index': 'Telunjuk • ٦ ٧ غ ع ت ة ا ى',
+                'hand-r-thumb': 'Jempol • SPASI Alt Win'
+            }
+        };
+
+        function switchKeyboardLayout(layout) {
+            if (layout) localStorage.setItem('mafatype_kb_layout', layout);
+            const currentLayout = layout || localStorage.getItem('mafatype_kb_layout') || 'latin';
+            const shifted = isShifted ? 'Shift' : '';
+            const mapping = layouts[currentLayout + shifted] || layouts[currentLayout];
+            
+            if (!mapping) return;
+            
+            document.querySelectorAll('.kb-key').forEach(keyEl => {
+                const dataKey = keyEl.getAttribute('data-key');
+                if (mapping[dataKey]) {
+                    keyEl.textContent = mapping[dataKey];
+                }
+            });
+
+            // Update Finger Guide Tooltips
+            const tooltips = fingerTooltips[currentLayout];
+            if (tooltips) {
+                Object.keys(tooltips).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute('data-label', tooltips[id]);
+                });
+            }
+        }
+
+        // ── Load Text List ───────────────────────────────────────────────────────
+        let curPracPage = 1;
+
+        async function loadTexts(page = 1) {
+            curPracPage = page;
+            const grid = document.getElementById('texts-grid');
+            const pag = document.getElementById('prac-pagination');
+            grid.innerHTML = `<div class="empty-msg">${App.t ? App.t('loading') : 'Memuat…'}</div>`;
+            
+            let url = API + `practice-texts&page=${page}&limit=12`;
+            if (curLangFilter) url += '&lang=' + curLangFilter;
+            if (curDiffFilter) url += '&difficulty=' + curDiffFilter;
+            if (user) url += '&user_id=' + user.id;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                texts = data.texts || [];
+                renderTextCards();
+                renderPracPagination(data.page || 1, data.pages || 1, data.total || texts.length, data.limit || 12);
+            } catch (e) {
+                grid.innerHTML = `<div class="empty-msg" style="color:#ef4444">Gagal memuat: ${e.message}</div>`;
+            }
+        }
+
+        function renderPracPagination(current, total, totalItems = 0, limit = 12) {
+            const pag = document.getElementById('prac-pagination');
+            if (total <= 1 && totalItems <= limit) {
+                pag.innerHTML = '';
+                return;
+            }
+
+            const start = Math.min((current - 1) * limit + 1, totalItems);
+            const end = Math.min(current * limit, totalItems);
+            const infoText = App.t ? App.t('showing_info').replace('{start}', start).replace('{end}', end).replace('{total}', totalItems) : `Showing ${start}–${end} of ${totalItems}`;
+
+            let html = `
+                <div class="pagination-info">${infoText}</div>
+                <div class="pagination">
+            `;
+            
+            // Previous Button
+            html += `<button class="pagination-btn" onclick="loadTexts(${current - 1})" ${current === 1 ? 'disabled' : ''} title="${App.t ? App.t('prev') : 'Sebelumnya'}">
+                &laquo;
+            </button>`;
+
+            // Page Numbers
+            const delta = 2; // How many pages around current
+            let left = current - delta;
+            let right = current + delta;
+            
+            if (left < 1) {
+                right = Math.min(total, right + (1 - left));
+                left = 1;
+            }
+            if (right > total) {
+                left = Math.max(1, left - (right - total));
+                right = total;
+            }
+
+            if (left > 1) {
+                html += `<button class="pagination-btn" onclick="loadTexts(1)">1</button>`;
+                if (left > 2) html += `<span style="color:var(--text-muted); padding:0 .25rem;">...</span>`;
+            }
+
+            for (let i = left; i <= right; i++) {
+                html += `<button class="pagination-btn ${i === current ? 'active' : ''}" onclick="loadTexts(${i})">${i}</button>`;
+            }
+
+            if (right < total) {
+                if (right < total - 1) html += `<span style="color:var(--text-muted); padding:0 .25rem;">...</span>`;
+                html += `<button class="pagination-btn" onclick="loadTexts(${total})">${total}</button>`;
+            }
+
+            // Next Button
+            html += `<button class="pagination-btn" onclick="loadTexts(${current + 1})" ${current === total ? 'disabled' : ''} title="${App.t ? App.t('next') : 'Berikutnya'}">
+                &raquo;
+            </button>`;
+
+            html += `</div>`;
+            pag.innerHTML = html;
+        }
+
+        function renderTextCards() {
+            const grid = document.getElementById('texts-grid');
+            if (!texts.length) {
+                grid.innerHTML = '<div class="empty-msg">Tidak ada teks untuk filter ini.</div>';
+                return;
+            }
+            
+            const settings = JSON.parse(sessionStorage.getItem('global_settings') || '{}');
+            const minReq = parseInt(settings.min_attempts_practice || 1);
+            const langFlag = { en: '🇺🇸', id: '🇮🇩', ar: '🇸🇦' };
+            
+            grid.innerHTML = texts.map((t, i) => {
+                const att = parseInt(t.attempts || 0);
+                const isDone = att >= minReq;
+                const statusHtml = `<span style="color:${isDone ? 'var(--success)' : 'var(--text-muted)'}">${att}/${minReq} dicoba</span>`;
+
+                return `
+                <div class="text-card" onclick="startPractice(${i})">
+                    <div class="text-card-top">
+                        <div class="text-card-title">${t.title}</div>
+                        <span class="diff-badge diff-${t.difficulty}">${t.difficulty}</span>
+                    </div>
+                    <div class="text-card-meta">
+                        <span>${langFlag[t.language] || '🌐'} ${t.language?.toUpperCase()}</span>
+                        <span>📝 ${t.char_count} kar.</span>
+                        <span>🔄 ${statusHtml}</span>
+                    </div>
+                    ${t.best_wpm ? `<div class="text-card-score">Best: <strong>${t.best_wpm}</strong> <span>WPM</span></div>` : ''}
+                </div>
+            `;}).join('');
+        }
+
+        // ── Start Practice ───────────────────────────────────────────────────────
+        async function startPractice(idx) {
+            const t = texts[idx];
+            if (!t) return;
+
+            // Fetch full content
+            const res = await fetch(API + 'practice-text&id=' + t.id);
+            const data = await res.json();
+            currentText = data.text;
+
+            if (!currentText) return;
+
+            resetState();
+            renderChars();
+            updateWordHighlight();
+            updateKeyboard();
+
+            document.getElementById('practice-title').textContent = currentText.title;
+            document.getElementById('practice-desc').textContent = currentText.description || '';
+            document.getElementById('practice-desc').style.display = currentText.description ? 'block' : 'none';
+            document.getElementById('browse-view').style.display = 'none';
+            document.getElementById('practice-view').style.display = 'block';
+
+            // Auto-switch keyboard layout for Arabic
+            const kbLayoutChk = document.getElementById('kb-layout-chk');
+            if (currentText.language === 'ar') {
+                if (kbLayoutChk) kbLayoutChk.checked = true;
+                switchKeyboardLayout('arabic');
+            } else {
+                if (kbLayoutChk) kbLayoutChk.checked = false;
+                switchKeyboardLayout('latin');
+            }
+
+            // Set language and direction
+            const disp = document.getElementById('word-display');
+            const inp = document.getElementById('practice-input');
+            const lang = currentText.language || 'en';
+            disp.setAttribute('lang', lang);
+            inp.setAttribute('lang', lang);
+            if (lang === 'ar') {
+                disp.setAttribute('dir', 'rtl');
+                inp.setAttribute('dir', 'rtl');
+            } else {
+                disp.removeAttribute('dir');
+                inp.removeAttribute('dir');
+            }
+
+            // Show history if logged in
+            if (user) {
+                document.getElementById('hist-panel').style.display = 'block';
+                loadHistory();
+            }
+
+            setTimeout(() => document.getElementById('practice-input').focus(), 50);
+        }
+
+        async function startPracticeById(id) {
+            // Fetch single text data
+            const res = await fetch(API + 'practice-text&id=' + id);
+            const data = await res.json();
+            currentText = data.text;
+
+            if (!currentText) {
+                console.error('Practice text not found');
+                return;
+            }
+
+            resetState();
+            renderChars();
+            updateWordHighlight();
+            updateKeyboard();
+
+            document.getElementById('practice-title').textContent = currentText.title;
+            document.getElementById('practice-desc').textContent = currentText.description || '';
+            document.getElementById('practice-desc').style.display = currentText.description ? 'block' : 'none';
+            document.getElementById('browse-view').style.display = 'none';
+            document.getElementById('practice-view').style.display = 'block';
+
+            // Set language and direction
+            const disp = document.getElementById('word-display');
+            const inp = document.getElementById('practice-input');
+            const lang = currentText.language || 'en';
+            disp.setAttribute('lang', lang);
+            inp.setAttribute('lang', lang);
+            if (lang === 'ar') {
+                disp.setAttribute('dir', 'rtl');
+                inp.setAttribute('dir', 'rtl');
+            } else {
+                disp.removeAttribute('dir');
+                inp.removeAttribute('dir');
+            }
+
+            if (user) {
+                document.getElementById('hist-panel').style.display = 'block';
+                loadHistory();
+            }
+
+            setTimeout(() => document.getElementById('practice-input').focus(), 50);
+        }
+
+        function backToBrowse() {
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').classList.remove('show');
+            document.getElementById('practice-view').style.display = 'none';
+            document.getElementById('browse-view').style.display = 'block';
+            loadTexts(); // refresh scores
+        }
+
+        // ── Typing Engine ────────────────────────────────────────────────────────
+        function resetState() {
+            clearInterval(timerInterval);
+            startTime = null;
+            errors = 0;
+            completedLength = 0;
+            currentWordIndex = 0;
+            correctKeystrokes = 0;
+            totalKeystrokes = 0;
+            lastInputLength = 0;
+            isDone = false;
+            document.getElementById('practice-input').value = '';
+            document.getElementById('rt-wpm').textContent = '0';
+            document.getElementById('rt-acc').textContent = '100%';
+            document.getElementById('rt-err').textContent = '0';
+            document.getElementById('rt-time').textContent = '00:00';
+            document.getElementById('practice-desc').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '0%';
+            
+            const wordsInner = document.getElementById('words-inner');
+            if (wordsInner) wordsInner.style.transform = 'translateY(0)';
+        }
+
+        function renderChars() {
+            const content = currentText?.content || '';
+            const display = document.getElementById('word-display');
+            display.innerHTML = '';
+            
+            const wordsInner = document.createElement('div');
+            wordsInner.id = 'words-inner';
+            wordsInner.className = 'words-inner';
+            display.appendChild(wordsInner);
+
+            const words = content.split(/(\s+)/); // Keep separators
+            
+            words.forEach(word => {
+                if (word === '\n') {
+                    const br = document.createElement('span');
+                    br.className = 'separator newline-br';
+                    wordsInner.appendChild(br);
+                    
+                    const indicator = document.createElement('span');
+                    indicator.className = 'separator newline-mark-wrap';
+                    indicator.innerHTML = '<span class="newline-mark">↵</span>';
+                    wordsInner.appendChild(indicator);
+                } else if (word === ' ') {
+                    const span = document.createElement('span');
+                    span.className = 'separator space';
+                    span.style.width = '0.4rem';
+                    wordsInner.appendChild(span);
+                } else if (word.trim().length > 0) {
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    // Wrap each char in a span for individual highlighting
+                    [...word].forEach(c => {
+                        const cs = document.createElement('span');
+                        cs.className = 'char';
+                        cs.textContent = c;
+                        span.appendChild(cs);
+                    });
+                    wordsInner.appendChild(span);
+                }
+            });
+        }
+
+        function handleInput(e) {
+            if (isDone) return;
+            const input = e.target;
+            const typed = input.value;
+
+            // Start timer on first char
+            if (!startTime && typed.length > 0) {
+                startTime = Date.now();
+                timerInterval = setInterval(updateStats, 100);
+                if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+            }
+
+            const content = currentText.content;
+            const wordsList = document.querySelectorAll('#words-inner .word');
+            
+            // Current word indexing in content
+            let nextSpace = content.indexOf(' ', completedLength);
+            let nextNewline = content.indexOf('\n', completedLength);
+            let wordEnd;
+            if (nextSpace === -1 && nextNewline === -1) wordEnd = content.length;
+            else if (nextSpace === -1) wordEnd = nextNewline;
+            else if (nextNewline === -1) wordEnd = nextSpace;
+            else wordEnd = Math.min(nextSpace, nextNewline);
+
+            const targetWord = content.slice(completedLength, wordEnd);
+            const currentWordEl = wordsList[currentWordIndex];
+
+            // FORCE CORRECT LOGIC
+            if (typed.length > 0) {
+                const expectedPrefix = targetWord.slice(0, typed.length);
+                if (typed !== expectedPrefix) {
+                    // Revert
+                    input.value = targetWord.slice(0, typed.length - 1);
+                    wrongKeystrokes++;
+                    errors++;
+                    playSound('error');
+                    
+                    currentWordEl?.classList.add('wrong');
+                    setTimeout(() => currentWordEl?.classList.remove('wrong'), 200);
+                    
+                    // Trigger redraw
+                    updateKeyboard();
+                    updateStats();
+                    return;
+                }
+            }
+
+            // Character highlighting
+            const charSpans = currentWordEl?.querySelectorAll('.char');
+            if (charSpans) {
+                charSpans.forEach((s, idx) => {
+                    if (idx < typed.length) s.classList.add('correct');
+                    else s.classList.remove('correct');
+                });
+            }
+
+            // Real-time prefix validation (should always be correct now)
+            if (typed.length > 0) {
+                playSound('type');
+                // Increment correctKeystrokes only if we actually added a correct character
+                if (typed.length > lastInputLength) {
+                    correctKeystrokes++;
+                }
+            }
+            lastInputLength = typed.length;
+            currentWordEl?.classList.remove('wrong');
+            delete currentWordEl?.dataset.errSound;
+
+            // Immediate completion for the last word
+            const isLastWord = (completedLength + targetWord.length === content.length);
+            if (isLastWord && typed === targetWord) {
+                completedLength += targetWord.length;
+                isDone = true;
+                clearInterval(timerInterval);
+                updateStats();
+                showResult();
+                updateKeyboard();
+                return;
+            }
+
+            const pct = (completedLength / content.length) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+
+            if (completedLength >= content.length) {
+                isDone = true;
+                clearInterval(timerInterval);
+                updateStats();
+                showResult();
+                updateKeyboard();
+            } else {
+                updateKeyboard();
+                updateStats(); // Ensure live update
+            }
+        }
+
+
+        function updateStats() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000; // seconds
+            
+            // Net WPM = ((Total Keystrokes / 5) - Errors) / (Time in Minutes)
+            const grossWpm = (totalKeystrokes / 5) / (elapsed / 60);
+            const errorInMinutes = errors / (elapsed / 60);
+            const wpm = elapsed > 0 ? Math.max(0, Math.round(grossWpm - errorInMinutes)) : 0;
+            
+            // Standard Accuracy: (Correct Keystrokes / Total Keystrokes)
+            const acc = totalKeystrokes > 0 ? ((correctKeystrokes / totalKeystrokes) * 100).toFixed(1) : "100.0";
+            
+            const secs = Math.floor(elapsed);
+            const mm = String(Math.floor(secs / 60)).padStart(2, '0');
+            const ss = String(secs % 60).padStart(2, '0');
+            document.getElementById('rt-wpm').textContent = wpm;
+            document.getElementById('rt-acc').textContent = acc + '%';
+            document.getElementById('rt-err').textContent = errors;
+            document.getElementById('rt-time').textContent = `${mm}:${ss}`;
+        }
+
+        // ── Result Modal ─────────────────────────────────────────────────────────
+        function showResult() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const grossWpm = (totalKeystrokes / 5) / (elapsed / 60);
+            const errorInMinutes = errors / (elapsed / 60);
+            const wpm = Math.max(0, Math.round(grossWpm - errorInMinutes));
+            
+            const acc = totalKeystrokes > 0 ? ((correctKeystrokes / totalKeystrokes) * 100).toFixed(1) : "100.0";
+            const secs = Math.floor(elapsed);
+            const mm = String(Math.floor(secs / 60)).padStart(2, '0');
+            const ss = String(secs % 60).padStart(2, '0');
+
+            document.getElementById('m-wpm').textContent = wpm;
+            document.getElementById('m-acc').textContent = acc + '%';
+            document.getElementById('m-err').textContent = errors;
+            document.getElementById('m-time').textContent = `${mm}:${ss}`;
+
+            // --- Dynamic Rating ---
+            const settings = JSON.parse(sessionStorage.getItem('global_settings') || '{}');
+            let ratings = [];
+            try {
+                ratings = typeof settings.typing_ratings === 'string' 
+                    ? JSON.parse(settings.typing_ratings) 
+                    : (settings.typing_ratings || []);
+            } catch(e) {}
+
+            if (ratings.length === 0) {
+                ratings = [
+                    { min_wpm: 0, rating: 'Poor', desc: 'Needs more practice' },
+                    { min_wpm: 40, rating: 'Good', desc: 'Average computer user' },
+                    { min_wpm: 61, rating: 'Very Good', desc: 'Fast and consistent' },
+                    { min_wpm: 81, rating: 'Excellent', desc: 'Professional level' },
+                    { min_wpm: 100, rating: 'Master', desc: 'Elite typing speed' }
+                ];
+            }
+            
+            const isArabic = currentText?.language === 'ar';
+            let currentRating = ratings[0];
+            for (const r of ratings) {
+                const threshold = isArabic ? r.min_wpm * 0.5 : r.min_wpm;
+                if (wpm >= threshold) currentRating = r;
+                else break;
+            }
+            document.getElementById('m-rating').textContent = currentRating.rating;
+            document.getElementById('m-desc').textContent = currentRating.desc;
+
+            // --- Attempt Progress Message ---
+            const minReq = parseInt(settings.min_attempts_practice || 1);
+            if (user) {
+                // Since this is a new attempt being saved, we can't easily get the *new* count 
+                // without waiting for the DB, but we can at least show the requirement.
+                document.getElementById('m-pass-msg').innerHTML = `<span style="color:var(--text-muted)">Min. ${minReq} percobaan diperlukan untuk selesai.</span>`;
+            }
+
+            document.getElementById('result-modal').classList.add('show');
+
+            // Save to DB if logged in
+            if (user) {
+                App.post('save-practice', {
+                    user_id: user.id,
+                    practice_text_id: currentText.id,
+                    wpm,
+                    accuracy: parseFloat(acc),
+                    errors,
+                    time_seconds: secs
+                }).then(r => {
+                    if (r.ok && r.data.achievements_unlocked && Array.isArray(r.data.achievements_unlocked)) {
+                        r.data.achievements_unlocked.forEach(ach => App.showAchievement(ach));
+                    }
+                });
+            }
+        }
+
+        function retryPractice() {
+            document.getElementById('result-modal').classList.remove('show');
+            resetState();
+            renderChars();
+            updateKeyboard();
+            if (user) loadHistory();
+            setTimeout(() => document.getElementById('practice-input').focus(), 50);
+        }
+
+        function nextText() {
+            document.getElementById('result-modal').classList.remove('show');
+            const currentIdx = texts.findIndex(t => t.id === currentText.id);
+            const nextIdx = (currentIdx + 1) % texts.length;
+            startPractice(nextIdx);
+        }
+
+        let histPage = 1;
+
+        async function loadHistory(page = 1) {
+            histPage = page;
+            if (!user || !currentText) return;
+            const res = await fetch(`${API}practice-history&user_id=${user.id}&text_id=${currentText.id}&page=${page}&limit=10`);
+            const data = await res.json();
+            const tbody = document.getElementById('hist-body');
+            const pagContainer = document.getElementById('hist-pagination');
+            pagContainer.innerHTML = '';
+            
+            if (!data.history?.length) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:1rem; color:var(--text-muted)">${App.t('no_practice_attempts')}</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.history.map(r => {
+                const d = new Date(r.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                const mm = String(Math.floor(r.time_seconds / 60)).padStart(2, '0');
+                const ss = String(r.time_seconds % 60).padStart(2, '0');
+                return `<tr>
+                <td style="font-size:.82rem; color:var(--text-muted)">${d}</td>
+                <td style="font-weight:700; color:var(--primary)">${r.wpm}</td>
+                <td>${parseFloat(r.accuracy).toFixed(1)}%</td>
+                <td>${r.errors}</td>
+                <td>${mm}:${ss}</td>
+            </tr>`;
+            }).join('');
+
+            renderHistPagination(data.page, data.pages, data.total, data.limit);
+        }
+
+        function renderHistPagination(current, total, totalItems = 0, limit = 10) {
+            const container = document.getElementById('hist-pagination');
+            if (total <= 1 && totalItems <= limit) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const start = Math.min((current - 1) * limit + 1, totalItems);
+            const end = Math.min(current * limit, totalItems);
+            const infoText = App.t ? App.t('showing_info').replace('{start}', start).replace('{end}', end).replace('{total}', totalItems) : `Showing ${start}–${end} of ${totalItems}`;
+
+            let html = `
+                <div class="pagination-info" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">${infoText}</div>
+                <div class="pagination" style="margin-bottom: 1rem;">
+            `;
+            
+            // Previous
+            html += `<button class="pagination-btn" onclick="loadHistory(${current - 1})" ${current === 1 ? 'disabled' : ''}>&laquo;</button>`;
+
+            // Simple numbers for modal (to save space)
+            const delta = 1; 
+            let left = current - delta;
+            let right = current + delta;
+            
+            if (left < 1) { right = Math.min(total, right + (1 - left)); left = 1; }
+            if (right > total) { left = Math.max(1, left - (right - total)); right = total; }
+
+            if (left > 1) {
+                html += `<button class="pagination-btn" onclick="loadHistory(1)">1</button>`;
+                if (left > 2) html += `<span style="color:var(--text-muted); align-self:center;">..</span>`;
+            }
+
+            for (let i = left; i <= right; i++) {
+                html += `<button class="pagination-btn ${i === current ? 'active' : ''}" onclick="loadHistory(${i})">${i}</button>`;
+            }
+
+            if (right < total) {
+                if (right < total - 1) html += `<span style="color:var(--text-muted); align-self:center;">..</span>`;
+                html += `<button class="pagination-btn" onclick="loadHistory(${total})">${total}</button>`;
+            }
+
+            // Next
+            html += `<button class="pagination-btn" onclick="loadHistory(${current + 1})" ${current === total ? 'disabled' : ''}>&raquo;</button>`;
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+        initKeyboardInteractions();
+
+    </script>
+</body>
+
+</html>

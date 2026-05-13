@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { API_BASE_URL } from '../utils/api';
 import type { Tugas, Ujian, RiwayatUjian } from '../types';
 import {
   X,
@@ -10,7 +11,9 @@ import {
   ChevronDown,
   RefreshCw,
   FileText,
-  Check
+  Check,
+  ClipboardCheck,
+  CheckCircle
 } from 'lucide-react';
 
 const Icon = {
@@ -28,7 +31,7 @@ const cleanPath = (raw: string) =>
   raw.replace(/^.*[/\\]uploads[/\\]/, '').replace(/\\/g, '/');
 
 const fileUrl = (raw: string) =>
-  `http://localhost:5000/uploads/${cleanPath(raw)}`;
+  `${API_BASE_URL}/uploads/${cleanPath(raw)}`;
 
 const fileExt = (raw: string) =>
   cleanPath(raw).split('.').pop()?.toLowerCase() ?? '';
@@ -130,12 +133,16 @@ export default function PenilaianPage() {
   const [hasilGuru,         setHasilGuru]         = useState<Tugas[]>([]);
   const [isLoadingHasil,    setIsLoadingHasil]    = useState(false);
   const [printTarget,       setPrintTarget]       = useState<Tugas | null>(null);
+  const [sortKelas,         setSortKelas]         = useState<'none' | 'asc' | 'desc'>('asc');
+  const [filterKelas,       setFilterKelas]       = useState<string>('SEMUA');
+  const [checkedKriteria,   setCheckedKriteria]   = useState<number[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   const fetchUjian = async () => {
     setIsLoadingUjian(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/ujian', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian`, { credentials: 'include' });
       if (res.status === 401) return navigate('/401');
       if (res.status === 403) return navigate('/403');
       const data = await res.json();
@@ -149,7 +156,7 @@ export default function PenilaianPage() {
     if (!ujianId) return;
     setIsLoadingTugas(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/tugas?ujianId=${ujianId}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/tugas?ujianId=${ujianId}`, {
         credentials: 'include',
       });
       if (res.status === 401) return navigate('/401');
@@ -163,7 +170,7 @@ export default function PenilaianPage() {
   const fetchRiwayat = async () => {
     setIsLoadingRiwayat(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/ujian/riwayat', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/riwayat`, { credentials: 'include' });
       if (res.ok) setRiwayatList(await res.json());
     } catch {} finally { setIsLoadingRiwayat(false); }
   };
@@ -172,7 +179,7 @@ export default function PenilaianPage() {
     if (!id) return;
     setIsLoadingHasil(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/ujian/${id}/hasil`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${id}/hasil`, { credentials: 'include' });
       if (res.ok) setHasilGuru(await res.json());
       else setHasilGuru([]);
     } catch { setHasilGuru([]); } finally { setIsLoadingHasil(false); }
@@ -187,11 +194,22 @@ export default function PenilaianPage() {
   useEffect(() => { if (selectedUjian) fetchTugas(selectedUjian); }, [selectedUjian]);
   useEffect(() => { if (riwayatUjianId) fetchHasilGuru(riwayatUjianId); }, [riwayatUjianId]);
 
-  const filtered = filterStatus === 'SEMUA'
-    ? tugasList
-    : tugasList.filter(t => t.status === filterStatus);
+  const filtered = tugasList.filter(t => {
+    const matchStatus = filterStatus === 'SEMUA' || t.status === filterStatus;
+    const matchKelas = filterKelas === 'SEMUA' || t.kelas === filterKelas;
+    return matchStatus && matchKelas;
+  });
 
-  const currentTugas = filtered[viewerIndex] ?? null;
+  const uniqueKelas = Array.from(new Set(tugasList.map(t => t.kelas))).sort();
+
+  const displayList = [...filtered].sort((a, b) => {
+    if (sortKelas === 'none') return 0;
+    const cmp = a.kelas.localeCompare(b.kelas, undefined, { numeric: true });
+    if (cmp !== 0) return sortKelas === 'asc' ? cmp : -cmp;
+    return a.noAbsen - b.noAbsen;
+  });
+
+  const currentTugas = displayList[viewerIndex] ?? null;
 
   const stats = {
     total:    tugasList.length,
@@ -205,20 +223,34 @@ export default function PenilaianPage() {
 
   const openViewer = (idx: number) => {
     setViewerIndex(idx);
-    const t = filtered[idx];
-    setInputNilai(t?.nilai?.toString() ?? '');
-    setInputCatatan(t?.catatan ?? '');
+    const t = displayList[idx];
+    setInputNilai(t.nilai !== null ? String(t.nilai) : '');
+    setInputCatatan(t.catatan ?? '');
+    setCheckedKriteria([]);
     setViewerOpen(true);
+  };
+
+  const handleToggleKriteria = (idx: number) => {
+    const isChecked = checkedKriteria.includes(idx);
+    const next = isChecked ? checkedKriteria.filter(i => i !== idx) : [...checkedKriteria, idx];
+    setCheckedKriteria(next);
+
+    const total = next.reduce((sum, i) => {
+      const k = (currentTugas?.ujian as any)?.kriteria?.[i];
+      return sum + (k?.skor || 0);
+    }, 0);
+    setInputNilai(String(total));
   };
 
   const goTo = useCallback((dir: 1 | -1) => {
     const next = viewerIndex + dir;
-    if (next < 0 || next >= filtered.length) return;
+    if (next < 0 || next >= displayList.length) return;
     setViewerIndex(next);
-    const t = filtered[next];
+    const t = displayList[next];
     setInputNilai(t?.nilai?.toString() ?? '');
     setInputCatatan(t?.catatan ?? '');
-  }, [viewerIndex, filtered]);
+    setCheckedKriteria([]);
+  }, [viewerIndex, displayList]);
 
   useEffect(() => {
     if (!viewerOpen) return;
@@ -237,17 +269,17 @@ export default function PenilaianPage() {
     if (isNaN(nilai) || nilai < 0 || nilai > 100) return alert('Nilai harus antara 0–100');
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/tugas/${currentTugas.id}/nilai`, {
+      const res = await fetch(`${API_BASE_URL}/admin/tugas/${currentTugas.id}/nilai`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ nilai, catatan: inputCatatan }),
+        body: JSON.stringify({ nilai, catatan: inputCatatan, pemeriksa: user?.nama }),
       });
       if (!res.ok) throw new Error();
       setTugasList(prev =>
         prev.map(t =>
           t.id === currentTugas.id
-            ? { ...t, nilai, catatan: inputCatatan, status: 'DINILAI', dinilaiAt: new Date().toISOString() }
+            ? { ...t, nilai, catatan: inputCatatan, pemeriksa: user?.nama, status: 'DINILAI', dinilaiAt: new Date().toISOString() }
             : t
         )
       );
@@ -345,25 +377,53 @@ export default function PenilaianPage() {
           </div>
         </div>
 
-        {}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-          {(['SEMUA', 'MENUNGGU', 'DINILAI', 'DIKEMBALIKAN'] as const).map(s => (
-            <button key={s} onClick={() => setFilterStatus(s)}
-              className={`whitespace-nowrap px-6 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase transition-all border ${
-                filterStatus === s ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30 shadow-lg' : 'text-white/30 border-transparent hover:text-white/60 hover:bg-white/5'
-              }`}>
-              {s.toLowerCase()}
-            </button>
-          ))}
+        {/* Filter Toolbar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide w-full md:w-auto">
+            {(['SEMUA', 'MENUNGGU', 'DINILAI', 'DIKEMBALIKAN'] as const).map(s => (
+              <button key={s} onClick={() => setFilterStatus(s)}
+                className={`whitespace-nowrap px-6 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase transition-all border ${
+                  filterStatus === s ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30 shadow-lg' : 'text-white/30 border-transparent hover:text-white/60 hover:bg-white/5'
+                }`}>
+                {s.toLowerCase()}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative group flex-1 md:flex-none md:w-48">
+              <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-5 pr-10 py-3 text-[10px] font-bold tracking-widest uppercase text-white/70 outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
+                <option value="SEMUA" className="bg-[#0f0f1a]">Semua Kelas</option>
+                {uniqueKelas.map(k => (
+                  <option key={k} value={k} className="bg-[#0f0f1a]">{k}</option>
+                ))}
+              </select>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none group-hover:text-white/40 transition-colors">
+                {Icon.chevronDown}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {}
+        {/* List Table */}
         <div className="glass-panel rounded-[2rem] overflow-hidden border border-white/10 bg-black/10">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5 border-b border-white/10">
-                {['No', 'Siswa', 'Deadline', 'Status', 'Nilai', ''].map((h, i) => (
-                  <th key={i} className={`px-8 py-5 text-[10px] tracking-[0.2em] text-white/25 uppercase font-bold ${i === 4 ? 'text-center' : ''}`}>{h}</th>
+                <th className="px-8 py-5 text-[10px] tracking-[0.2em] text-white/25 uppercase font-bold w-16">No</th>
+                <th className="px-8 py-5 text-[10px] tracking-[0.2em] text-white/25 uppercase font-bold cursor-pointer hover:text-indigo-400 transition-colors"
+                  onClick={() => setSortKelas(prev => prev === 'asc' ? 'desc' : 'asc')}>
+                  <div className="flex items-center gap-2">
+                    Siswa & Kelas
+                    <div className="flex flex-col gap-0.5 opacity-50">
+                      <div className={`w-1.5 h-1.5 border-t-2 border-l-2 border-current rotate-45 ${sortKelas === 'asc' ? 'text-indigo-400' : ''}`} />
+                      <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-current rotate-45 ${sortKelas === 'desc' ? 'text-indigo-400' : ''}`} />
+                    </div>
+                  </div>
+                </th>
+                {['Deadline', 'Status', 'Nilai', ''].map((h, i) => (
+                  <th key={i} className={`px-8 py-5 text-[10px] tracking-[0.2em] text-white/25 uppercase font-bold ${i === 2 ? 'text-center' : ''}`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -374,13 +434,13 @@ export default function PenilaianPage() {
                     <td colSpan={6} className="px-8 py-6"><div className="h-4 bg-white/5 rounded-lg animate-pulse w-full" /></td>
                   </tr>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : displayList.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-8 py-24 text-center">
                     <div className="text-white/10 text-xs font-bold uppercase tracking-[0.3em]">Tidak ada tugas ditemukan</div>
                   </td>
                 </tr>
-              ) : filtered.map((tugas, idx) => (
+              ) : displayList.map((tugas, idx) => (
                 <tr key={tugas.id} onClick={() => openViewer(idx)}
                   className="border-b border-white/[0.03] last:border-0 hover:bg-white/[0.04] cursor-pointer transition-all group">
                   <td className="px-8 py-5 text-xs text-white/20 font-mono">{idx + 1}</td>
@@ -613,14 +673,45 @@ export default function PenilaianPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between text-xs font-medium"><span className="text-white/30">Dikumpulkan</span><span className="text-white/60">{formatTanggal(currentTugas.submittedAt)}</span></div>
                     <div className="flex justify-between text-xs font-medium"><span className="text-white/30">Format File</span><span className="text-indigo-400 font-bold">.{fileExt(currentTugas.filePath).toUpperCase()}</span></div>
+                    {currentTugas.pemeriksa && (
+                      <div className="flex justify-between text-xs font-medium pt-1 border-t border-white/5">
+                        <span className="text-white/30">Pemeriksa</span>
+                        <span className="text-emerald-400 font-bold flex items-center gap-1.5"><ClipboardCheck className="w-3.5 h-3.5" /> {currentTugas.pemeriksa}</span>
+                      </div>
+                    )}
                   </div>
                 </section>
 
                 <section className="pt-8 border-t border-white/5">
                   <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-6">Input Penilaian</p>
+                  
+                  {/* Kriteria Checklist */}
+                  {currentTugas.ujian?.kriteria && (currentTugas.ujian.kriteria as any[]).length > 0 ? (
+                    <div className="mb-8 space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                      <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider mb-2">Checklist Kriteria</p>
+                      {(currentTugas.ujian.kriteria as any[]).map((k, idx) => (
+                        <label key={idx} className="flex items-center gap-3 cursor-pointer group">
+                          <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                            checkedKriteria.includes(idx) ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-white/10 bg-black/20 group-hover:border-white/20'
+                          }`} onClick={() => handleToggleKriteria(idx)}>
+                            {checkedKriteria.includes(idx) && <CheckCircle className="w-3.5 h-3.5" />}
+                          </div>
+                          <div className="flex-1 flex justify-between items-center" onClick={() => handleToggleKriteria(idx)}>
+                            <span className={`text-xs transition-colors ${checkedKriteria.includes(idx) ? 'text-white font-medium' : 'text-white/40'}`}>{k.label}</span>
+                            <span className={`text-[10px] font-mono ${checkedKriteria.includes(idx) ? 'text-indigo-300' : 'text-white/20'}`}>+{k.skor}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mb-8 p-4 rounded-2xl border border-dashed border-white/5 text-center">
+                      <p className="text-[10px] font-bold text-white/10 uppercase tracking-wider">Tidak ada kriteria penilaian</p>
+                    </div>
+                  )}
+
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-[10px] text-white/30 uppercase font-bold mb-3">Skor (0 - 100)</label>
+                      <label className="block text-[10px] text-white/30 uppercase font-bold mb-3">Skor Akhir (0 - 100)</label>
                       <input type="number" min={0} max={100} placeholder="0" value={inputNilai} onChange={e => setInputNilai(e.target.value)}
                         className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-4xl font-bold text-white placeholder-white/5 focus:border-indigo-500/50 outline-none transition-all tabular-nums" />
                     </div>

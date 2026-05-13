@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import ImportSiswaModal from '../components/ImportSiswaModal';
 import GenerateSesiModal from '../components/GenerateSesiModal';
+import { API_BASE_URL } from '../utils/api';
 import type { Akun, Sesi, Siswa, Tugas, RiwayatUjian } from '../types';
 import {
   X,
@@ -58,7 +59,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsLoadingData(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/akun', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/akun`, { credentials: 'include' });
       if (res.status === 401) return navigate('/401');
       if (res.status === 403) return navigate('/403');
       if (!res.ok) throw new Error();
@@ -75,7 +76,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsLoadingSesi(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/sesi', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/sesi`, { credentials: 'include' });
       if (res.status === 401) return navigate('/401');
       if (res.status === 403) return navigate('/403');
       if (!res.ok) throw new Error();
@@ -92,7 +93,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsLoadingSiswa(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/siswa', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/siswa`, { credentials: 'include' });
       if (res.status === 401) return navigate('/401');
       if (res.status === 403) return navigate('/403');
       if (!res.ok) throw new Error();
@@ -107,7 +108,7 @@ export default function DashboardPage() {
   const handleCreateAkun = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/admin/akun', {
+      const res = await fetch(`${API_BASE_URL}/admin/akun`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -129,7 +130,7 @@ export default function DashboardPage() {
 
     const results = await Promise.all(
       [...selectedAkun].map(async id => {
-        const res = await fetch(`http://localhost:5000/admin/akun/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/admin/akun/${id}`, { method: 'DELETE', credentials: 'include' });
         return { id, ok: res.ok };
       })
     );
@@ -145,7 +146,7 @@ export default function DashboardPage() {
 
     const results = await Promise.all(
       [...selectedSesi].map(async token => {
-        const res = await fetch(`http://localhost:5000/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/admin/sesi/${token}`, { method: 'DELETE', credentials: 'include' });
         return { token, ok: res.ok };
       })
     );
@@ -182,7 +183,7 @@ export default function DashboardPage() {
     setIsUploading(true);
     setShowCsvPreview(false);
     try {
-      const res = await fetch('http://localhost:5000/admin/generate', {
+      const res = await fetch(`${API_BASE_URL}/admin/generate`, {
         method: 'POST', credentials: 'include', body: formData,
       });
       const data = await res.json();
@@ -237,7 +238,7 @@ export default function DashboardPage() {
 
     setIsSavingSesi(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/sesi/${editingSesi.token}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/sesi/${editingSesi.token}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -270,7 +271,7 @@ export default function DashboardPage() {
 
   const fetchUjianAll = async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/ujian?includeDeleted=true', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian?includeDeleted=true`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setUjianAllList(data.map((u: any) => ({ id: u.id, judul: u.judul })));
@@ -282,7 +283,7 @@ export default function DashboardPage() {
     if (!ujianId) return;
     setIsLoadingHasil(true);
     try {
-      const res = await fetch(`http://localhost:5000/admin/ujian/${ujianId}/hasil`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${ujianId}/hasil`, { credentials: 'include' });
       if (res.ok) setHasilData(await res.json());
     } catch { } finally { setIsLoadingHasil(false); }
   };
@@ -290,7 +291,7 @@ export default function DashboardPage() {
   const fetchRiwayat = async () => {
     setIsLoadingRiwayat(true);
     try {
-      const res = await fetch('http://localhost:5000/admin/ujian/riwayat', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/riwayat`, { credentials: 'include' });
       if (res.ok) setRiwayatData(await res.json());
     } catch { } finally { setIsLoadingRiwayat(false); }
   };
@@ -321,7 +322,7 @@ export default function DashboardPage() {
             DCC<span className="text-cyan-400 font-light">Admin</span>
           </span>
           <div className="flex items-center gap-2">
-            {[{ label: 'Dashboard', path: '/dashboard' }, { label: 'Ujian', path: '/ujian-admin' }, { label: 'Penilaian', path: '/penilaian' }].map(({ label, path }) => (
+            {[{ label: 'Dashboard', path: '/dashboard' }, { label: 'Ujian', path: '/ujian-admin' }, { label: 'Penilaian', path: '/penilaian' }, { label: 'Latihan Ketik', path: '/typing' }].map(({ label, path }) => (
               <button key={path} onClick={() => navigate(path)}
                 className={`text-xs font-medium tracking-wide px-4 py-2 rounded-xl transition-all ${path === '/dashboard' ? 'text-white bg-white/10 shadow-sm' : 'text-white/40 hover:text-white/80 hover:bg-white/5'}`}>
                 {label}

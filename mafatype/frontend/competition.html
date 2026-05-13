@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition — Mafatype.</title>
+    <meta name="description" content="Ikuti kompetisi mengetik dengan kata yang sama untuk semua peserta.">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        /* ── Layout ──────────────────────────────────────────── */
+        .comp-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* ── Competition Info Header ─────────────────────────── */
+        .comp-header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .comp-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .comp-title-area {
+            flex: 1;
+        }
+
+        .comp-title-area h1 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: .3rem;
+        }
+
+        .comp-title-area p {
+            color: var(--text-2);
+            font-size: .9rem;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: .5rem;
+        }
+
+        .comp-badge {
+            padding: .28rem .75rem;
+            border-radius: 50px;
+            font-size: .76rem;
+            font-weight: 700;
+        }
+
+        .badge-en {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .badge-id {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .badge-ar {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .comp-status {
+            padding: .22rem .65rem;
+            border-radius: 50px;
+            font-size: .72rem;
+            font-weight: 700;
+        }
+
+        .status-active {
+            background: #22c55e22;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-upcoming {
+            background: #3b82f622;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-ended {
+            background: #ef444422;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .comp-meta-row {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            font-size: .82rem;
+            color: var(--text-muted);
+            margin-top: .65rem;
+        }
+
+        .comp-countdown-big {
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            color: #fff;
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            flex-shrink: 0;
+            min-width: 120px;
+        }
+
+        .comp-countdown-big .time {
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .comp-countdown-big .lbl {
+            font-size: .72rem;
+            opacity: .85;
+            margin-top: .25rem;
+        }
+
+        /* ── Typing Area ─────────────────────────────────────── */
+        .typing-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+        }
+
+        .typing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .typing-header h2 {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .timer-badge {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+            transition: color .3s;
+        }
+
+        .timer-badge.danger {
+            color: #ef4444;
+        }
+
+        .word-display {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 1.5rem 1.75rem;
+            min-height: 200px;
+            max-height: 200px;
+            overflow: hidden;
+            font-size: 1.55rem;
+            line-height: 2.0;
+            word-spacing: .45rem;
+            letter-spacing: .02em;
+            margin-bottom: 1.25rem;
+            scroll-behavior: smooth;
+        }
+
+        .word-display[dir="rtl"] {
+            direction: rtl;
+            font-family: 'Cairo', 'Noto Sans Arabic', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        .word-display .word {
+            display: inline-block;
+            margin: .2rem .4rem;
+        }
+
+        .word-display .word.active {
+            color: var(--accent);
+            background: rgba(99, 102, 241, .08);
+            border-bottom: 3px solid var(--accent);
+            border-radius: .2rem .2rem 0 0;
+        }
+
+        .word-display .word.correct {
+            color: #10b981;
+        }
+
+        .word-display .word.wrong {
+            color: #ef4444;
+            background: rgba(239, 68, 68, .1);
+            border-radius: .3rem;
+            text-decoration: none;
+        }
+
+        .typing-input {
+            width: 100%;
+            padding: .8rem 1rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: .75rem;
+            font-size: 1.1rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+            font-family: inherit;
+        }
+
+        .typing-input:focus {
+            border-color: var(--accent);
+        }
+
+        .typing-input[dir="rtl"] {
+            text-align: right;
+            font-family: 'Cairo', 'Noto Sans Arabic', sans-serif;
+        }
+
+        /* ── Idle / Start State ─────────────────────────────── */
+        .typing-idle {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            color: var(--text-2);
+        }
+
+        .typing-idle h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: .4rem;
+        }
+
+        .typing-idle p {
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* ── Result Panel ────────────────────────────────────── */
+        .result-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .65rem;
+            margin: 1rem 0;
+        }
+
+        .result-stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+            padding: .6rem;
+            text-align: center;
+        }
+
+        .result-stat .val {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .result-stat .lbl {
+            font-size: .68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .result-msg {
+            padding: .75rem 1rem;
+            border-radius: .75rem;
+            font-size: .88rem;
+            font-weight: 600;
+            margin-bottom: .75rem;
+        }
+
+        .result-msg.new-best {
+            background: #22c55e1a;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .result-msg.same-best {
+            background: #f59e0b1a;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        /* ── Actions Row ─────────────────────────────────────── */
+        .action-row {
+            display: flex;
+            gap: .65rem;
+            flex-wrap: wrap;
+            margin-top: .75rem;
+        }
+
+        /* ── Leaderboard Panel ───────────────────────────────── */
+        .lb-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .lb-card-header {
+            padding: 1rem 1.25rem .75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lb-card-header h2 {
+            font-size: .95rem;
+            font-weight: 800;
+        }
+
+        .lb-refresh {
+            font-size: .75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .lb-refresh:hover {
+            color: var(--accent);
+        }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .84rem;
+        }
+
+        .lb-table th,
+        .lb-table td {
+            padding: .55rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .lb-table th {
+            background: var(--surface);
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-2);
+            font-weight: 700;
+        }
+
+        .lb-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .lb-table tr:hover td {
+            background: var(--surface);
+        }
+
+        .lb-table .rank {
+            font-weight: 800;
+        }
+
+        .lb-table .rank.gold {
+            color: #f59e0b;
+        }
+
+        .lb-table .rank.silver {
+            color: #94a3b8;
+        }
+
+        .lb-table .rank.bronze {
+            color: #cd7c2e;
+        }
+
+        .lb-table .kpm {
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .lb-table .me td {
+            background: rgba(99, 102, 241, .06) !important;
+        }
+
+        .lb-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: .85rem;
+        }
+
+        .lb-attempts {
+            font-size: .72rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Responsive ─────────────────────────────────────── */
+        @media (max-width: 800px) {
+            .comp-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .lb-card {
+                position: static;
+            }
+
+            .typing-idle {
+                padding: 1rem .5rem;
+            }
+
+            .result-panel {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" class="active" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Back button + Error state -->
+        <div id="page-error" style="display:none;text-align:center;padding:3rem;">
+            <div style="font-size:3rem;margin-bottom:1rem">🏁</div>
+            <p style="color:var(--text-2)" id="page-error-msg" data-i18n="comp_not_found">Kompetisi tidak ditemukan.</p>
+            <a href="competitions.html" class="btn btn-primary" style="display:inline-block;margin-top:1rem" data-i18n="back_to_list">← Kembali
+                ke Daftar</a>
+        </div>
+
+        <div id="page-content" style="display:none">
+
+            <!-- Back nav -->
+            <div style="margin-bottom:1rem;">
+                <a href="competitions.html" style="color:var(--text-2);font-size:.88rem;text-decoration:none;" data-i18n="back_to_competitions">← Kembali
+                    ke Kompetisi</a>
+            </div>
+
+            <!-- Competition Header -->
+            <div class="comp-header" id="comp-header">
+                <div class="comp-header-top">
+                    <div class="comp-title-area">
+                        <div class="badge-row" id="comp-badges"></div>
+                        <h1 id="comp-title">…</h1>
+                        <p id="comp-desc"></p>
+                        <div class="comp-meta-row" id="comp-meta"></div>
+                    </div>
+                    <div class="comp-countdown-big" id="comp-countdown-box" style="display:none">
+                        <div class="time" id="comp-countdown-time">--</div>
+                        <div class="lbl" data-i18n="time_remaining">sisa waktu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main 2-column layout -->
+            <div class="comp-layout">
+
+                <!-- LEFT: Typing -->
+                <div>
+                    <div class="typing-card" id="typing-card">
+
+                        <!-- Idle state (before start) -->
+                        <div class="typing-idle" id="typing-idle">
+                            <div style="font-size:3rem;margin-bottom:.5rem">⌨️</div>
+                            <h3 data-i18n="ready_to_compete">Siap berkompetisi?</h3>
+                            <p data-i18n="comp_rules_desc">Semua peserta mendapat kata yang sama.<br>Boleh mencoba berkali-kali — hanya skor
+                                terbaikmu yang dihitung.</p>
+                            <button class="btn btn-primary" id="start-btn" style="min-width:180px" data-i18n="start_typing_test">▶ Mulai Tes
+                                Mengetik</button>
+                        </div>
+
+                        <!-- Active typing (hidden until started) -->
+                        <div id="typing-area" style="display:none">
+                            <div class="typing-header">
+                                <h2 data-i18n="typing_now">⌨️ Ketik Sekarang</h2>
+                                <div class="timer-badge" id="timer">60s</div>
+                            </div>
+                            <div class="word-display" id="word-display"></div>
+                            <input type="text" class="typing-input" id="typing-input" placeholder="Ketik kata di sini…"
+                                data-i18n-placeholder="type_here"
+                                autocomplete="off" autocorrect="off" spellcheck="false" disabled onpaste="return false;" oncopy="return false;">
+                            <div class="action-row" style="margin-top:.65rem">
+                                <div style="flex:1;font-size:.8rem;color:var(--text-muted)" data-i18n="press_space_hint">
+                                    Tekan <kbd
+                                        style="border:1px solid var(--border);border-radius:.25rem;padding:.1rem .4rem">Space</kbd>
+                                    setelah setiap kata
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Result (hidden until done) -->
+                        <div id="result-area" style="display:none">
+                            <div style="font-size:1rem;font-weight:800;margin-bottom:.75rem" data-i18n="test_results">📊 Hasil Tes</div>
+                            <div class="result-panel">
+                                <div class="result-stat">
+                                    <div class="val" id="res-kpm">0</div>
+                                    <div class="lbl" data-i18n="kpm">KPM</div>
+                                </div>
+                                <div class="result-stat">
+                                    <div class="val" id="res-acc">0%</div>
+                                    <div class="lbl" data-i18n="accuracy_long">Akurasi</div>
+                                </div>
+                                <div class="result-stat">
+                                    <div class="val" id="res-ks">0</div>
+                                    <div class="lbl" data-i18n="keystrokes">Ketukan</div>
+                                </div>
+                            </div>
+                            <div class="result-msg" id="result-msg" data-i18n="saving">⏳ Menyimpan…</div>
+                            <div class="action-row">
+                                <button class="btn btn-primary" id="retry-btn" data-i18n="retry_long">🔄 Coba Lagi</button>
+                                <button class="btn" onclick="scrollToLb()" data-i18n="see_leaderboard">📊 Lihat Leaderboard</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RIGHT: Leaderboard -->
+                <div id="lb-wrap">
+                    <div class="lb-card">
+                        <div class="lb-card-header">
+                            <h2 data-i18n="nav_leaderboard">🏆 Leaderboard</h2>
+                            <span class="lb-refresh" onclick="loadLeaderboard()" data-i18n="refresh">↻ Refresh</span>
+                        </div>
+                        <div id="lb-body">
+                            <div class="lb-empty">${App.t('loading')}</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!-- /page-content -->
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        /* ═══════════════════════════════════════════════════════════════════════════
+           competition.html — Dedicated Competition Page
+           URL: competition.html?id=X
+        ═══════════════════════════════════════════════════════════════════════════ */
+
+        const API_BASE = '/mafatype/backend-php/api.php';
+        const API = API_BASE + '?action=';
+
+        const params = new URLSearchParams(location.search);
+        const CID = parseInt(params.get('id') || '0');
+
+        let compData = null;   // competition object
+        let testWords = [];     // fixed words for this competition
+        let testObj = null;   // active InlineTypingTest instance
+        let lbTimer = null;   // leaderboard refresh interval
+
+        // ── Boot ──────────────────────────────────────────────────────────────────────
+        async function boot() {
+            if (!CID) { showError(App.t('invalid_comp_id')); return; }
+
+            try {
+                // Load specific competition details
+                const r = await fetch(API + `competition&id=${CID}`);
+                const data = await r.json();
+                if (data.error || !data.competition) { showError(data.error || App.t('comp_not_found')); return; }
+                compData = data.competition;
+            } catch (e) {
+                showError(App.t('comp_load_failed') + e.message); return;
+            }
+
+            renderHeader();
+            loadLeaderboard();
+            lbTimer = setInterval(loadLeaderboard, 15000);
+
+            // Wire buttons
+            document.getElementById('start-btn').addEventListener('click', startTest);
+            document.getElementById('retry-btn').addEventListener('click', retryTest);
+
+            document.getElementById('page-content').style.display = '';
+        }
+
+        // ── Header ────────────────────────────────────────────────────────────────────
+        function renderHeader() {
+            const c = compData;
+            const lang = { en: '🇺🇸 English', id: '🇮🇩 Indonesia', ar: '🇸🇦 Arabic' }[c.language] || c.language;
+            const badgeCls = { en: 'badge-en', id: 'badge-id', ar: 'badge-ar' }[c.language] || 'badge-en';
+            const status = compStatus(c);
+            const start = fmt(c.start_date);
+            const end = fmt(c.end_date);
+
+            const siteName = (window.App && window.App.site_name) || sessionStorage.getItem('site_name') || 'Mafatype.';
+            document.title = c.title + ' — ' + siteName;
+            document.getElementById('comp-badges').innerHTML =
+                `<span class="comp-badge ${badgeCls}">${lang}</span>
+         <span class="comp-status ${status.cls}">${status.label}</span>`;
+            document.getElementById('comp-title').textContent = c.title;
+            document.getElementById('comp-desc').textContent = c.description || '';
+            document.getElementById('comp-meta').innerHTML =
+                `<span>📅 ${App.t('comp_start_at').replace('{date}', start)}</span>
+                 <span>🏁 ${App.t('comp_end_at').replace('{date}', end)}</span>`;
+
+            // Countdown
+            if (status.cls === 'status-active') {
+                const box = document.getElementById('comp-countdown-box');
+                box.style.display = '';
+                tickCountdown(c.end_date);
+            }
+
+            // Disable start if not active, or change to View Results if ended
+            const btn = document.getElementById('start-btn');
+            const idleTitle = document.querySelector('#typing-idle h3');
+            const idleDesc = document.querySelector('#typing-idle p');
+
+            if (status.cls === 'status-ended') {
+                btn.innerHTML = '📊 ' + App.t('see_results');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.classList.add('btn-view-results');
+                
+                if (idleTitle) idleTitle.textContent = App.translations.status_ended_label || 'Kompetisi Selesai';
+                if (idleDesc) idleDesc.textContent = App.translations.comp_rules_desc || 'Kompetisi ini telah berakhir. Lihat performa para pengetik di leaderboard.';
+            } else if (status.cls === 'status-upcoming') {
+                btn.textContent = App.t('status_upcoming_btn');
+                btn.disabled = true;
+                btn.style.opacity = '.6';
+            }
+        }
+
+        function compStatus(c) {
+            const now = Date.now();
+            if (now < new Date(c.start_date)) return { label: '🕑 ' + App.t('status_upcoming_label'), cls: 'status-upcoming' };
+            if (now > new Date(c.end_date)) return { label: '✅ ' + App.t('status_ended_label'), cls: 'status-ended' };
+            return { label: '🟢 ' + App.t('status_active_label'), cls: 'status-active' };
+        }
+
+        function fmt(d) {
+            return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        }
+
+        function tickCountdown(endDate) {
+            const el = document.getElementById('comp-countdown-time');
+            const update = () => {
+                const diff = new Date(endDate) - Date.now();
+                if (diff <= 0) { el.textContent = App.t('status_ended_label'); return; }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                el.textContent = d > 0 ? `${d}h ${h}j ${m}m` : h > 0 ? `${h}j ${m}m ${s}d` : `${m}m ${s}d`;
+                setTimeout(update, 1000);
+            };
+            update();
+        }
+
+        // ── Start Test ────────────────────────────────────────────────────────────────
+        async function startTest() {
+            const btn = document.getElementById('start-btn');
+            if (btn.classList.contains('btn-view-results')) {
+                scrollToLb();
+                return;
+            }
+
+            const user = App.getUser();
+            if (!user) {
+                App.toast(App.t('login_to_compete'), 'error');
+                setTimeout(() => window.location.href = 'login.html', 1200);
+                return;
+            }
+
+            document.getElementById('start-btn').textContent = '⏳ ' + App.t('loading_words');
+            document.getElementById('start-btn').disabled = true;
+
+            try {
+                const r = await fetch(API + `competition-words&competition_id=${CID}`);
+                const data = await r.json();
+                if (data.error) throw new Error(data.error);
+                testWords = data.words;
+
+                // Show typing area
+                document.getElementById('typing-idle').style.display = 'none';
+                document.getElementById('typing-area').style.display = '';
+                document.getElementById('result-area').style.display = 'none';
+
+                // Apply RTL for Arabic
+                const isAr = compData.language === 'ar';
+                const display = document.getElementById('word-display');
+                const input = document.getElementById('typing-input');
+                display.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                input.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                input.placeholder = App.translations.type_here || (isAr ? 'اكتب الكلمة هنا…' : 'Type here...');
+
+                testObj = new CompTypingTest(testWords, user, compData.language);
+            } catch (e) {
+                App.toast(App.t('words_load_failed') + e.message, 'error');
+                document.getElementById('start-btn').textContent = '▶ ' + App.t('start_comp_test');
+                document.getElementById('start-btn').disabled = false;
+            }
+        }
+
+        // ── Retry ─────────────────────────────────────────────────────────────────────
+        function retryTest() {
+            if (!testWords.length) { startTest(); return; }
+            const user = App.getUser();
+            if (!user) return;
+
+            // Reset DOM
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('typing-area').style.display = '';
+            document.getElementById('timer').textContent = '60s';
+            document.getElementById('timer').classList.remove('danger');
+            document.getElementById('typing-input').value = '';
+            document.getElementById('typing-input').disabled = true;
+
+            testObj = new CompTypingTest(testWords, user, compData.language);
+        }
+
+        // ── Leaderboard ───────────────────────────────────────────────────────────────
+        async function loadLeaderboard() {
+            const body = document.getElementById('lb-body');
+            try {
+                const r = await fetch(API + `competition-leaderboard&competition_id=${CID}`);
+                const data = await r.json();
+                renderLb(data.leaderboard || []);
+            } catch (e) {
+                if (body) body.innerHTML = `<div class="lb-empty">${App.t('lb_load_failed')}</div>`;
+            }
+        }
+
+        function renderLb(rows) {
+            const body = document.getElementById('lb-body');
+            const user = App.getUser();
+            if (!rows.length) {
+                body.innerHTML = `<div class="lb-empty">${App.t('lb_no_entries')}</div>`;
+                return;
+            }
+            const rIcon = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+            const rCls = r => r === 1 ? 'gold' : r === 2 ? 'silver' : r === 3 ? 'bronze' : '';
+            body.innerHTML = `
+    <table class="lb-table">
+        <thead><tr>
+            <th>#</th><th>${App.t('username')}</th>
+            <th>${App.t('wpm')}</th><th>${App.t('accuracy')}</th>
+            <th class="lb-attempts">${App.t('action') === 'Aksi' ? 'Coba' : 'Attempts'}</th>
+        </tr></thead>
+        <tbody>
+        ${rows.map(r => `
+            <tr class="${user && r.user_id == user.id ? 'me' : ''}">
+                <td class="rank ${rCls(r.rank)}">${rIcon(r.rank)}</td>
+                <td style="font-weight:600">
+                    <a href="profile.html?user_id=${r.user_id}" style="color:inherit; text-decoration:none;">
+                        ${r.username}
+                    </a>
+                    ${user && r.user_id == user.id ? ` <span style="color:var(--accent);font-size:.7rem">${App.t('you_label')}</span>` : ''}
+                </td>
+                <td class="kpm">${r.best_wpm}</td>
+                <td>${parseFloat(r.best_accuracy).toFixed(1)}%</td>
+                <td class="lb-attempts">${r.attempts}×</td>
+            </tr>`).join('')}
+        </tbody>
+    </table>`;
+        }
+
+        function scrollToLb() {
+            document.getElementById('lb-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── InlineTypingTest ───────────────────────────────────────────────────────────
+        class CompTypingTest {
+            constructor(words, user, lang) {
+                this.words = [...words];
+                this.user = user;
+                this.lang = lang || 'en';
+                this.idx = 0;
+                this.correct = 0;
+                this.wrong = 0;
+                this.cChars = 0;
+                this.wChars = 0;
+                this.dur = 60;
+                this.timeLeft = 60;
+                this.running = false;
+                this.timer = null;
+                this.afkTimer = null;
+                this.afkLimit = 10000;
+                this.isLoadingExtra = false;
+
+                this.display = document.getElementById('word-display');
+                this.input = document.getElementById('typing-input');
+                this.timerEl = document.getElementById('timer');
+
+                this.renderWords();
+                this.bindEvents();
+                this.activateInput();
+                this.display.scrollTop = 0; // Reset scroll
+            }
+
+            renderWords() {
+                this.display.innerHTML = '';
+                this.words.forEach((w, i) => {
+                    const sp = document.createElement('span');
+                    sp.className = 'word' + (i === 0 ? ' active' : '');
+                    sp.textContent = w;
+                    this.display.appendChild(sp);
+                });
+            }
+
+            bindEvents() {
+                this._onKeydown = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        const v = this.input.value.trim();
+                        if (!v) return;
+                        if (!this.running) this.start();
+                        this.evaluate(v);
+                        this.input.value = '';
+                    } else if (!this.running && e.key.length === 1) {
+                        this.start();
+                    }
+                };
+                this._onInput = () => {
+                    this.highlight();
+                    this.resetAfkTimer();
+                }
+                this.input.addEventListener('keydown', this._onKeydown);
+                this.input.addEventListener('input', this._onInput);
+            }
+
+            activateInput() {
+                this.input.disabled = false;
+                this.input.focus();
+            }
+
+            start() {
+                if (this.running) return;
+                this.running = true;
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.timerEl.textContent = `${this.timeLeft}s`;
+                    if (this.timeLeft <= 10) this.timerEl.classList.add('danger');
+                    if (this.timeLeft <= 0) this.endTest();
+                }, 1000);
+                this.startAfkTimer();
+            }
+
+            startAfkTimer() {
+                if (!this.running) return;
+                clearTimeout(this.afkTimer);
+                this.afkTimer = setTimeout(() => {
+                    this.showAfk();
+                }, this.afkLimit);
+            }
+
+            resetAfkTimer() {
+                if (!this.running) return;
+                this.startAfkTimer();
+            }
+
+            showAfk() {
+                if (!this.running) return;
+                // Stop timer immediately
+                clearInterval(this.timer);
+                this.running = false;
+                
+                App.showAfkModal(() => {
+                    retryTest(); // This function is already defined in competition.html
+                });
+            }
+
+            highlight() {
+                const span = this.display.children[this.idx];
+                const target = this.words[this.idx];
+                if (!span || !target) return;
+                const v = this.input.value;
+                if (v && !target.startsWith(v)) span.classList.add('wrong');
+                else span.classList.remove('wrong');
+            }
+
+            evaluate(typed) {
+                const spans = this.display.children;
+                const span = spans[this.idx];
+                const target = this.words[this.idx];
+                if (!span || !target) return;
+                span.classList.remove('active', 'wrong');
+                if (typed === target) {
+                    span.classList.add('correct');
+                    this.correct++; this.cChars += typed.length;
+                } else {
+                    span.classList.add('wrong');
+                    this.wrong++; this.wChars += typed.length;
+                }
+                this.idx++;
+
+                // Replenish words if nearing end
+                if (this.idx > this.words.length - 20) {
+                    this.appendMoreWords();
+                }
+
+                if (this.idx >= this.words.length) { this.endTest(); return; }
+                const next = this.display.children[this.idx];
+                if (next) {
+                    next.classList.add('active');
+                    // Proactive scroll check (keep next line visible)
+                    const container = this.display;
+                    const nextRect = next.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+
+                    // If the next word's bottom is within 80px of the container's bottom,
+                    // scroll it up so there is space for the line below.
+                    if (nextRect.bottom > containerRect.bottom - 80) {
+                        container.scrollTop += 60;
+                    }
+                }
+            }
+
+            async appendMoreWords() {
+                if (this.isLoadingExtra) return;
+                this.isLoadingExtra = true;
+                try {
+                    const offset = this.words.length;
+                    const r = await fetch(API_BASE + `?action=words&lang=${this.lang}&seed=${CID}&offset=${offset}`);
+                    const data = await r.json();
+                    if (data.words && data.words.length > 0) {
+                        const newWords = data.words.filter(w => w.trim().length > 0);
+                        this.words.push(...newWords);
+                        newWords.forEach((w) => {
+                            const sp = document.createElement('span');
+                            sp.className = 'word';
+                            sp.textContent = w;
+                            this.display.appendChild(sp);
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error fetching additional words:', e);
+                } finally {
+                    this.isLoadingExtra = false;
+                }
+            }
+
+            endTest() {
+                clearInterval(this.timer);
+                clearTimeout(this.afkTimer);
+                this.running = false;
+                this.input.disabled = true;
+                this.input.removeEventListener('keydown', this._onKeydown);
+                this.input.removeEventListener('input', this._onInput);
+
+                const min = this.dur / 60;
+                const kpm = this.cChars > 0 ? Math.round(this.cChars / 5 / min) : 0;
+                const total = this.cChars + this.wChars;
+                const acc = total > 0 ? +((this.cChars / total) * 100).toFixed(2) : 100;
+                const ks = `(${this.cChars}|${this.wChars}) ${total}`;
+
+                document.getElementById('res-kpm').textContent = kpm;
+                document.getElementById('res-acc').textContent = acc.toFixed(1) + '%';
+                document.getElementById('res-ks').textContent = ks;
+                document.getElementById('result-area').style.display = '';
+                document.getElementById('typing-area').style.display = 'none';
+
+                this.submit(kpm, acc);
+            }
+
+            async submit(kpm, acc) {
+                const msgEl = document.getElementById('result-msg');
+                msgEl.className = 'result-msg';
+                msgEl.textContent = '⏳ ' + App.t('saving_result');
+
+                try {
+                    const r = await fetch(API_BASE + '?action=submit-competition', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            competition_id: CID,
+                            user_id: this.user.id,
+                            wpm: kpm,
+                            accuracy: acc
+                        })
+                    });
+                    const data = await r.json();
+                    if (data.error) throw new Error(data.error);
+                    msgEl.className = `result-msg ${data.new_best ? 'new-best' : 'same-best'}`;
+                    msgEl.textContent = data.message;
+                    if (data.achievements_unlocked && Array.isArray(data.achievements_unlocked)) {
+                        data.achievements_unlocked.forEach(ach => App.showAchievement(ach));
+                    }
+                    loadLeaderboard(); // Refresh leaderboard
+                } catch (e) {
+                    msgEl.textContent = '⚠️ ' + App.t('save_result_failed') + e.message;
+                }
+            }
+        }
+
+        // ── Error Page ─────────────────────────────────────────────────────────────────
+        function showError(msg) {
+            document.getElementById('page-error-msg').textContent = msg;
+            document.getElementById('page-error').style.display = '';
+        }
+
+        // ── Init ───────────────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            boot();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (lbTimer) clearInterval(lbTimer);
+        });
+    </script>
+</body>
+
+</html>

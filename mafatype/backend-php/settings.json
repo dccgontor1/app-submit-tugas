@@ -1,0 +1,8 @@
+{
+    "site_name": "Mafatype.",
+    "max_room_players": 10,
+    "default_language": "id",
+    "allow_register": false,
+    "maintenance_mode": false,
+    "node_server_url": "http://localhost:3005"
+}

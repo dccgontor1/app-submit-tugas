@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Test — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test" class="active">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width:860px;">
+        <div class="card" id="typing-card">
+
+            <!-- Header: timer + language -->
+            <div class="test-header">
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <span class="pill active" style="cursor:default;">60s</span>
+                </div>
+                <div class="timer-ring" id="timer">60</div>
+                <div style="display:flex; align-items:center; gap:.5rem;">
+                    <label style="font-size:.78rem; color:var(--text-muted); white-space:nowrap;" data-i18n="mp_language">Bahasa Teks:</label>
+                    <select id="test-lang"
+                        style="padding:.3rem .6rem; border-radius:.4rem; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:.82rem; cursor:pointer;">
+                        <option value="id">🇮🇩 ID</option>
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="ar">🇸🇦 AR</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Words -->
+            <div class="word-display" id="word-display" spellcheck="false" autocorrect="off">
+                <span style="color:var(--text-muted); font-family:var(--font); font-size:1rem;" data-i18n="loading">Loading words…</span>
+            </div>
+
+            <!-- Input -->
+            <input type="text" id="typing-input" class="typing-input" autocomplete="off" spellcheck="false"
+                autocorrect="off" data-i18n-placeholder="typing_input_placeholder" placeholder="Click here and start typing…" autofocus>
+
+            <!-- Actions -->
+            <div style="display:flex; justify-content:center; gap:0.75rem; margin-top:1.25rem;">
+                <button class="btn" id="restart-btn" data-i18n="typing_restart_btn">↺ Restart</button>
+            </div>
+
+            <!-- Results -->
+            <div class="stats-grid" id="stats" style="display:none;">
+                <div class="stat-box" id="sb-wpm">
+                    <div class="stat-value" id="res-wpm">0</div>
+                    <div class="stat-label" data-i18n="wpm">KPM</div>
+                </div>
+                <div class="stat-box" id="sb-ks">
+                    <div class="stat-value" id="res-keystrokes" style="font-size:1.1rem;">0</div>
+                    <div class="stat-label" data-i18n="keystrokes">Keystrokes</div>
+                </div>
+                <div class="stat-box" id="sb-acc">
+                    <div class="stat-value" id="res-accuracy">100%</div>
+                    <div class="stat-label" data-i18n="accuracy">Accuracy</div>
+                </div>
+                <div class="stat-box" id="sb-correct">
+                    <div class="stat-value" id="res-correct">0</div>
+                    <div class="stat-label" style="color:var(--correct)" data-i18n="hist_correct">Correct Words</div>
+                </div>
+                <div class="stat-box" id="sb-wrong">
+                    <div class="stat-value" id="res-wrong">0</div>
+                    <div class="stat-label" style="color:var(--wrong)" data-i18n="errors">Wrong Words</div>
+                </div>
+                <div class="stat-box" id="sb-rating" style="grid-column: span 2; border: 1px solid var(--primary); background: rgba(var(--primary-rgb), 0.05);">
+                    <div class="stat-value" id="res-rating" style="color:var(--primary); font-size: 1.5rem;">—</div>
+                    <div class="stat-label" id="res-desc">—</div>
+                </div>
+                <div id="res-pass-msg" style="grid-column: span 3; text-align: center; font-weight: 700; margin-top: 0.5rem; font-size: 1.1rem;"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script src="../js/typing.js"></script>
+    <script>
+        // Local typing test initialization is handled in typing.js
+    </script>
+</body>
+
+</html>

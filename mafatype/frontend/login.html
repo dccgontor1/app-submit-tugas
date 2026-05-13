@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        /* ── Login Page ── */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        .login-page {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 65px);
+        }
+
+        /* Left: Branding Panel */
+        .login-brand {
+            background: var(--grad);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-brand::before {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .login-brand::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border-radius: 50%;
+            bottom: -80px;
+            left: -80px;
+        }
+
+        .brand-logo {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+        }
+
+        .brand-name {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .brand-tagline {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.1rem;
+            max-width: 320px;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: left;
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .brand-feat {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .brand-feat:hover {
+            background: rgba(255, 255, 255, 0.14);
+            transform: translateX(8px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .brand-feat span:first-child {
+            font-size: 1.25rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        /* Right: Login Form */
+        .login-form-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .login-box h1 {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .login-sub {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 2rem;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .login-box label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 0.4rem;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap .input-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .input-wrap .form-input {
+            padding-left: 2.5rem;
+        }
+
+        .login-box .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            padding-left: 2.75rem;
+            border-radius: 0.625rem;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .login-box .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+        }
+
+        .login-box .form-input::placeholder {
+            opacity: 0.45;
+            color: var(--text-muted);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--grad);
+            border: none;
+            border-radius: 0.625rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            letter-spacing: 0.01em;
+            margin-top: 0.5rem;
+        }
+
+        .login-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        #login-msg {
+            font-size: 0.875rem;
+            min-height: 1.5rem;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #login-msg.msg-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        #login-msg.msg-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .login-page {
+                grid-template-columns: 1fr;
+            }
+
+            .login-brand {
+                padding: 2.5rem;
+                min-height: 240px;
+            }
+
+            .brand-features {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer Race</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" class="active" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="login-page">
+
+        <!-- Left Brand Panel -->
+        <div class="login-brand">
+            <div class="brand-logo">⌨️</div>
+            <div class="brand-name site-name-text">Mafatype.</div>
+            <p class="brand-tagline" data-i18n="login_brand_tagline">Platform tes kecepatan mengetik modern. Buktikan kemampuanmu!</p>
+            <div class="brand-features">
+                <div class="brand-feat"><span>⚡</span><span data-i18n="login_feat_realtime">Tes WPM real-time</span></div>
+                <div class="brand-feat"><span>🏆</span><span data-i18n="login_feat_comp">Kompetisi & Leaderboard</span></div>
+                <div class="brand-feat"><span>🎮</span><span data-i18n="login_feat_mp">Balapan Multiplayer</span></div>
+                <div class="brand-feat"><span>📝</span><span data-i18n="login_feat_practice">Mode Latihan</span></div>
+                <div class="brand-feat"><span>🖐️</span><span data-i18n="login_feat_finger">Latihan Jari</span></div>
+                <div class="brand-feat"><span>🌍</span><span data-i18n="login_feat_lang">3 Bahasa didukung</span></div>
+            </div>
+        </div>
+
+        <!-- Right Form Panel -->
+        <div class="login-form-panel">
+            <div class="login-box">
+                <a href="index.html" class="back-home" data-i18n="login_back_home">← Kembali ke beranda</a>
+
+                <h1 data-i18n="login_welcome_m">Selamat datang!</h1>
+                <p class="login-sub" data-i18n="login_sub_m">Masuk dengan akun Anda untuk melanjutkan.</p>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label data-i18n="email">Email</label>
+                        <div class="input-wrap">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width:1.1rem; height:1.1rem;">
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <polyline points="22,6 12,13 2,6" />
+                                </svg>
+                            </span>
+                            <input class="form-input" type="email" id="login-email" required
+                                placeholder="nama@email.com" data-i18n-placeholder="login_email_placeholder">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="password">Password</label>
+                        <div class="input-wrap">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width:1.1rem; height:1.1rem;">
+                                    <path
+                                        d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3L15.5 7.5z" />
+                                </svg>
+                            </span>
+                            <input class="form-input" type="password" id="login-password" required
+                                placeholder="••••••••" data-i18n-placeholder="login_password_placeholder">
+                        </div>
+                    </div>
+
+                    <div id="login-msg"></div>
+
+                    <button type="submit" class="login-btn" id="login-submit" data-i18n="login_submit_btn">
+                        Masuk →
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const msgEl = document.getElementById('login-msg');
+            const btn = document.getElementById('login-submit');
+            msgEl.textContent = '';
+            btn.textContent = 'Memuat...';
+            btn.disabled = true;
+
+            const { ok, data } = await App.post('login', {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            });
+
+            btn.textContent = 'Masuk →';
+            btn.disabled = false;
+
+            if (ok) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                App.toast('✅ Login sebagai ' + data.user.username, 'success');
+                const redirectUrl = data.user.role === 'admin' ? 'admin.html' : 'index.html';
+                setTimeout(() => window.location.href = redirectUrl, 900);
+            } else {
+                msgEl.className = 'msg-error';
+                msgEl.textContent = data.error || 'Login gagal. Periksa email dan password.';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finger Training — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <style>
+        :root {
+            --kb-key-bg: var(--surface);
+            --kb-key-border: var(--border);
+            --kb-key-text: var(--text);
+            --kb-highlight: var(--primary);
+        }
+
+        .page-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
+        }
+
+        .page-header p {
+            color: var(--text-2);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Finger Selector */
+        .finger-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .finger-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 110px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .finger-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .finger-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .finger-btn .name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+            color: var(--text);
+        }
+
+        .finger-btn .keys {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            font-family: var(--mono);
+            letter-spacing: 0.05em;
+            color: var(--text);
+        }
+
+        .finger-btn .stats-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .finger-btn .best-wpm,
+        .finger-btn .trained-count {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            width: 100%;
+            display: inline-block;
+        }
+
+        .finger-btn.active .best-wpm,
+        .finger-btn.active .trained-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Typing Card */
+        .training-card {
+            width: 100%;
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .stats-overlay {
+            display: none;
+            /* Hidden during task as requested */
+            justify-content: center;
+            gap: 4rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .stat-lab {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-2);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-top: 0.4rem;
+        }
+
+        .word-display {
+            font-family: var(--mono);
+            font-size: 1.8rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            height: 130px;
+            position: relative;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .word-display-inner {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem 0;
+            padding: 1rem 1.5rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            width: 100%;
+            align-content: flex-start;
+            line-height: 1.4;
+        }
+
+        .word {
+            display: flex;
+            justify-content: flex-start;
+            white-space: nowrap;
+        }
+
+        .char {
+            display: inline-block;
+            width: 0.65em;
+            /* Monospace character box */
+            text-align: center;
+            color: var(--text-2);
+            transition: all 0.15s ease;
+            border-bottom: 4px solid transparent;
+            /* Stable baseline */
+            padding-bottom: 2px;
+            opacity: 0.5;
+        }
+
+        .char.current {
+            color: var(--text);
+            opacity: 1;
+            background: rgba(var(--primary-rgb), 0.08);
+            border-bottom-color: var(--primary);
+        }
+
+        .char.correct {
+            color: var(--correct);
+            opacity: 1;
+            border-bottom-color: transparent;
+        }
+
+        .char.wrong {
+            color: var(--wrong);
+            opacity: 1;
+            background: rgba(239, 68, 68, 0.08);
+            border-bottom-color: var(--wrong);
+        }
+
+        .typing-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        /* Mechanical Keyboard Look */
+        .keyboard-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .keyboard {
+            background: var(--surface-2);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            width: fit-content;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin: 0 auto;
+        }
+
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        /* Staggered Row Indentation */
+        .kb-row:nth-child(1) {
+            margin-left: 0;
+        }
+
+        .kb-row:nth-child(2) {
+            margin-left: 20px;
+        }
+
+        .kb-row:nth-child(3) {
+            margin-left: 45px;
+        }
+
+        .kb-row:nth-child(4) {
+            margin-left: 0;
+        }
+
+        /* Space row centered */
+
+        .kb-key {
+            width: 38px;
+            height: 38px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            position: relative;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+        }
+
+        .kb-key.wide-1 {
+            width: 55px;
+        }
+
+        .kb-key.space {
+            width: 240px;
+        }
+
+        .kb-key.highlight,
+        .kb-key.hover-active-key {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            border-bottom-color: var(--primary-h);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .kb-key::after {
+            content: attr(data-finger);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 20;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .kb-key:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .kb-key::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--primary) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 21;
+            pointer-events: none;
+        }
+
+        .kb-key:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .kb-key.active-press {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+            background: var(--primary-h);
+            color: white;
+        }
+
+        /* Improved Hand Visuals */
+        .visual-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0 2rem;
+        }
+
+        .hand-container {
+            display: flex;
+            gap: 4rem;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .hand-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hand-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .hand {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            height: 60px;
+            padding: 0 10px;
+        }
+
+        .finger {
+            width: 24px;
+            background: var(--border);
+            border-radius: 12px 12px 4px 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            opacity: 0.4;
+            cursor: help;
+        }
+
+        .finger:hover {
+            opacity: 1;
+        }
+
+        .finger::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.4);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .finger:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Tooltip arrow */
+        .finger:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--primary) transparent transparent transparent;
+            opacity: 1;
+            visibility: visible;
+            z-index: 11;
+        }
+
+        .finger.active,
+        .finger.hover-active {
+            background: var(--primary);
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .f-pinky {
+            height: 35px;
+        }
+
+        .f-ring {
+            height: 50px;
+        }
+
+        .f-middle {
+            height: 60px;
+        }
+
+        .f-index {
+            height: 55px;
+        }
+
+        .f-thumb {
+            height: 35px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-overlay {
+                gap: 2rem;
+            }
+
+            .word-display {
+                font-size: 1.5rem;
+                padding: 1rem;
+            }
+
+            .kb-key {
+                width: 40px;
+                height: 40px;
+                font-size: 0.8rem;
+            }
+
+            .kb-key.space {
+                width: 200px;
+            }
+
+            .finger-btn {
+                min-width: 100px;
+                padding: 0.6rem;
+            }
+        }
+
+        /* Result Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.show .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-emoji {
+            font-size: 3.5rem;
+            margin-bottom: .5rem;
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .modal-stat {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .modal-stat-val {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .modal-stat-lab {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--text-2);
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* History Panel */
+        .history-panel {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .history-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th {
+            background: var(--surface-2);
+            padding: 1rem;
+            font-weight: 700;
+            color: var(--text-2);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge-finger {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            text-transform: capitalize;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .finger-filter-select {
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .finger-filter-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            min-height: auto;
+        }
+
+        .page-info {
+            font-size: 0.85rem;
+            color: var(--text-2);
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" class="active" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="login.html" id="nav-auth" data-i18n="nav_login">Login</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1 id="title" data-i18n="nav_finger_training">🖐️ Finger Training</h1>
+            <p id="desc" data-i18n="finger_training_desc">Tingkatkan kecepatan dan akurasi mengetik dengan melatih memori otot setiap jari secara spesifik.</p>
+        </div>
+
+        <div class="finger-selector" id="finger-selector">
+            <!-- Buttons injected by JS -->
+        </div>
+
+        <div class="training-card">
+            <div class="stats-overlay">
+                <div class="stat-item">
+                    <div class="stat-val" id="rt-wpm">0</div>
+                    <div class="stat-lab" data-i18n="wpm">WPM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="rt-acc">100%</div>
+                    <div class="stat-lab" data-i18n="accuracy">Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="rt-time">0</div>
+                    <div class="stat-lab" data-i18n="seconds">Seconds</div>
+                </div>
+            </div>
+
+            <div id="word-display" class="word-display">
+                <div id="word-display-inner" class="word-display-inner">
+                    <!-- Text injected by JS -->
+                </div>
+            </div>
+
+            <input type="text" id="typing-input" class="typing-input" autocomplete="off" spellcheck="false">
+
+            <div class="keyboard-area">
+                <div class="keyboard" id="keyboard">
+                    <div class="kb-row">
+                        <div class="kb-key" data-key="q">Q</div>
+                        <div class="kb-key" data-key="w">W</div>
+                        <div class="kb-key" data-key="e">E</div>
+                        <div class="kb-key" data-key="r">R</div>
+                        <div class="kb-key" data-key="t">T</div>
+                        <div class="kb-key" data-key="y">Y</div>
+                        <div class="kb-key" data-key="u">U</div>
+                        <div class="kb-key" data-key="i">I</div>
+                        <div class="kb-key" data-key="o">O</div>
+                        <div class="kb-key" data-key="p">P</div>
+                    </div>
+                    <div class="kb-row">
+                        <div class="kb-key" data-key="a">A</div>
+                        <div class="kb-key" data-key="s">S</div>
+                        <div class="kb-key" data-key="d">D</div>
+                        <div class="kb-key" data-key="f">F</div>
+                        <div class="kb-key" data-key="g">G</div>
+                        <div class="kb-key" data-key="h">H</div>
+                        <div class="kb-key" data-key="j">J</div>
+                        <div class="kb-key" data-key="k">K</div>
+                        <div class="kb-key" data-key="l">L</div>
+                        <div class="kb-key" data-key=";">;</div>
+                    </div>
+                    <div class="kb-row">
+                        <div class="kb-key" data-key="z">Z</div>
+                        <div class="kb-key" data-key="x">X</div>
+                        <div class="kb-key" data-key="c">C</div>
+                        <div class="kb-key" data-key="v">V</div>
+                        <div class="kb-key" data-key="b">B</div>
+                        <div class="kb-key" data-key="n">N</div>
+                        <div class="kb-key" data-key="m">M</div>
+                        <div class="kb-key" data-key=",">,</div>
+                        <div class="kb-key" data-key=".">.</div>
+                        <div class="kb-key" data-key="/">/</div>
+                    </div>
+                    <div class="kb-row">
+                        <div class="kb-key space" data-key=" ">SPACE</div>
+                    </div>
+                </div>
+
+                <div class="visual-footer">
+                    <div class="hand-container">
+                        <div class="hand-visual">
+                            <div class="hand-label">Left Hand</div>
+                            <div class="hand">
+                                <div class="finger f-pinky" id="hand-l-pinky" title="Pinky"></div>
+                                <div class="finger f-ring" id="hand-l-ring" title="Ring"></div>
+                                <div class="finger f-middle" id="hand-l-middle" title="Middle"></div>
+                                <div class="finger f-index" id="hand-l-index" title="Index"></div>
+                                <div class="finger f-thumb" id="hand-l-thumb" title="Thumb" data-keys="SPACE"></div>
+                            </div>
+                        </div>
+                        <div class="hand-visual">
+                            <div class="hand-label">Right Hand</div>
+                            <div class="hand" style="flex-direction: row-reverse;">
+                                <div class="finger f-pinky" id="hand-r-pinky" title="Pinky"></div>
+                                <div class="finger f-ring" id="hand-r-ring" title="Ring"></div>
+                                <div class="finger f-middle" id="hand-r-middle" title="Middle"></div>
+                                <div class="finger f-index" id="hand-r-index" title="Index"></div>
+                                <div class="finger f-thumb" id="hand-r-thumb" title="Thumb" data-keys="SPACE"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-panel">
+                <div class="history-header">
+                    <div class="history-title" style="margin-bottom: 0;" data-i18n="history_finger_training">📊 Riwayat Latihan Jari</div>
+                    <select id="history-filter" class="finger-filter-select"
+                        onchange="FingerTraining.changeFilter(this.value)">
+                        <option value="all" data-i18n="all_fingers">Semua Jari</option>
+                        <option value="left-pinky" data-i18n="left_pinky">Left Pinky</option>
+                        <option value="left-ring" data-i18n="left_ring">Left Ring</option>
+                        <option value="left-middle" data-i18n="left_middle">Left Middle</option>
+                        <option value="left-index" data-i18n="left_index">Left Index</option>
+                        <option value="right-index" data-i18n="right_index">Right Index</option>
+                        <option value="right-middle" data-i18n="right_middle">Right Middle</option>
+                        <option value="right-ring" data-i18n="right_ring">Right Ring</option>
+                        <option value="right-pinky" data-i18n="right_pinky">Right Pinky</option>
+                        <option value="all-fingers" data-i18n="all_fingers_pattern">Pola Acak (Semua Jari)</option>
+                    </select>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="finger_pattern">Jari / Pola</th>
+                                <th data-i18n="wpm">WPM</th>
+                                <th data-i18n="accuracy">Akurasi</th>
+                                <th data-i18n="hist_date">Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-i18n="loading_history">
+                                    Memuat riwayat...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="history-pagination">
+                    <div class="pagination-left">
+                        <span class="page-info" id="page-info">Halaman 1 dari 1</span>
+                        <span class="data-info" id="data-info"
+                            style="margin-left: 1rem; opacity: 0.6; font-size: 0.75rem;">Loading...</span>
+                    </div>
+                    <div class="pagination-right" style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-sm" id="first-page" onclick="FingerTraining.jumpToPage('first')"
+                            disabled data-i18n="first">First</button>
+                        <button class="btn btn-sm" id="prev-page" onclick="FingerTraining.changePage(-1)"
+                            disabled data-i18n="prev">Prev</button>
+                        <button class="btn btn-sm" id="next-page" onclick="FingerTraining.changePage(1)"
+                            disabled data-i18n="next">Next</button>
+                        <button class="btn btn-sm" id="last-page" onclick="FingerTraining.jumpToPage('last')"
+                            disabled data-i18n="last">Last</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-box">
+            <div class="modal-emoji">🏆</div>
+            <div class="modal-title" data-i18n="practice_finish">Latihan Selesai!</div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-wpm">0</div>
+                    <div class="modal-stat-lab" data-i18n="wpm">WPM</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="m-acc">100%</div>
+                    <div class="stat-lab" data-i18n="accuracy">Accuracy</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn"
+                    onclick="FingerTraining.selectFinger(FingerTraining.currentFinger.id); FingerTraining.closeModal();" data-i18n="retry">🔄
+                    Ulangi</button>
+                <button class="btn btn-primary" id="btn-next-finger" style="display:none;" onclick="FingerTraining.nextFinger()">
+                    <span data-i18n="next_finger">Jari Berikutnya</span> →
+                </button>
+                <button class="btn" onclick="FingerTraining.restartFromStart();" data-i18n="restart_from_start">
+                    Mulai dari Awal
+                </button>
+                <button class="btn" onclick="FingerTraining.closeModal()" data-i18n="close">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script src="../js/finger-training.js"></script>
+</body>
+
+</html>

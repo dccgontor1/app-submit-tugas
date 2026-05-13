@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — Mafatype.</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/site-sync.js"></script>
+    <script src="js/vendor/chart.umd.min.js"></script>
+    <style>
+        .stat-box.comp-box {
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Language tab pills for the chart */
+        .lang-tabs {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-tab {
+            padding: .35rem .9rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: .82rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .lang-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .lang-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Per-language mini stat row under chart */
+        .lang-stats-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .lang-stat-item {
+            flex: 1;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .lang-stat-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .lang-stat-label {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: .15rem;
+        }
+
+
+        /* Lang filter row for history table */
+        .hist-filters {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hist-filter {
+            padding: .28rem .75rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: .8rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .hist-filter.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .range-filters-wrap {
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+            padding-bottom: .25rem;
+            scrollbar-width: none;
+        }
+
+        .range-filters-wrap::-webkit-scrollbar {
+            display: none;
+        }
+
+        .range-filter {
+            padding: .35rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: .8rem;
+            cursor: pointer;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+
+        .range-filter.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .no-data-msg {
+            text-align: center;
+            padding: 2.5rem;
+            color: var(--text-muted);
+            font-size: .9rem;
+        }
+
+        /* Competition listing */
+        .comp-list {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .comp-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all .2s;
+        }
+
+        .comp-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .comp-item-info h4 {
+            font-weight: 700;
+            font-size: .95rem;
+            margin-bottom: .2rem;
+        }
+
+        .comp-item-meta {
+            font-size: .75rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: .75rem;
+        }
+
+        .comp-item-stats {
+            text-align: right;
+        }
+
+        .comp-item-wpm {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .comp-item-acc {
+            font-size: .75rem;
+            color: var(--text-muted);
+        }
+
+        /* Achievements */
+        .ach-category {
+            margin-bottom: 2rem;
+        }
+
+        .ach-category-title {
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            font-weight: 700;
+        }
+
+        .ach-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .ach-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+        }
+
+        .ach-badge:hover {
+            transform: translateY(-3px);
+        }
+
+        .ach-icon {
+            width: 54px;
+            height: 54px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all .2s;
+            position: relative;
+        }
+
+        .ach-badge.locked .ach-icon {
+            filter: grayscale(1);
+            opacity: 0.5;
+            background: var(--surface-2);
+        }
+
+        .ach-badge.locked .ach-icon::after {
+            content: '🔒';
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            font-size: .8rem;
+            background: var(--surface);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ach-badge.unlocked .ach-icon {
+            background: var(--surface);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .ach-name {
+            font-size: .65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 80px;
+            line-height: 1.2;
+        }
+
+        .ach-badge.unlocked .ach-name {
+            color: var(--text);
+        }
+
+        /* Achievements Tooltip */
+        .ach-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.85rem;
+            width: 200px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            backdrop-filter: blur(10px);
+        }
+
+        .ach-badge:hover .ach-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .ach-tooltip-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .ach-tooltip-desc {
+            font-size: 0.75rem;
+            color: var(--text-2);
+            line-height: 1.4;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
+
+        .ach-tooltip-status {
+            font-size: 0.72rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ach-status-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .ach-status-value {
+            font-weight: 700;
+        }
+
+        .ach-badge.unlocked .ach-status-value {
+            color: var(--correct);
+        }
+
+        .ach-badge.locked .ach-status-value {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .ach-tooltip {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        /* Arrow */
+        .ach-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--border) transparent transparent transparent;
+        }
+
+        /* RTL support for tooltip text */
+        [dir="rtl"] .ach-tooltip {
+            text-align: right;
+        }
+
+        [dir="rtl"] .ach-tooltip-status {
+            flex-direction: row-reverse;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-brand">⌨️ <span class="site-name-text">Mafatype.</span></a>
+        <div class="nav-links">
+            <a href="typing.html" data-i18n="nav_typing_test">Typing Test</a>
+            <a href="multiplayer.html" data-i18n="nav_multiplayer">Multiplayer</a>
+            <a href="practice.html" data-i18n="nav_practice">Practice</a>
+            <a href="finger-training.html" data-i18n="nav_finger_training">Finger Training</a>
+            <a href="competitions.html" data-i18n="nav_competitions">Competitions</a>
+            <a href="leaderboard.html" data-i18n="nav_leaderboard">Leaderboard</a>
+        </div>
+        <div class="nav-controls">
+            <a href="profile.html" class="active" id="nav-auth" data-i18n="nav_profile">Profile</a>
+            <select id="lang-select" title="Language">
+                <option value="en">🇺🇸 EN</option>
+                <option value="id">🇮🇩 ID</option>
+                <option value="ar">🇸🇦 AR</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width:760px;">
+
+        <div class="card" style="text-align:center; margin-bottom:1.5rem; position: relative;">
+            <div class="avatar" id="profile-avatar">?</div>
+            <h2 id="profile-name" style="font-size:1.5rem; font-weight:700;">Loading…</h2>
+            <p id="profile-email" style="color:var(--text-muted); margin-top:.25rem; margin-bottom:0.5rem;">—</p>
+
+            <div id="profile-extra-info"
+                style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                <span id="display-kelas" data-i18n="profile_extra_kelas">Kelas: —</span>
+                <span id="display-daerah" data-i18n="profile_extra_daerah">Daerah: —</span>
+                <span id="display-last-activity" data-i18n="profile_extra_active">Aktif: —</span>
+            </div>
+
+            <button class="btn btn-danger" onclick="App.logout()" data-i18n="nav_logout">🚪 Log Out</button>
+        </div>
+
+        <!-- Overall Stats -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;" data-i18n="profile_stats">📊 Your
+                Statistics</h3>
+
+            <!-- Overall Summary Row -->
+            <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom: 1.5rem;">
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-wpm">—</div>
+                    <div class="stat-label" data-i18n="stat_best_wpm_all">Best WPM (All)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-acc">—</div>
+                    <div class="stat-label" data-i18n="avg_accuracy">Avg Accuracy</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-total">—</div>
+                    <div class="stat-label" data-i18n="total_tests">Tests Taken</div>
+                </div>
+                <div class="stat-box comp-box">
+                    <div class="stat-value" id="stat-comps">—</div>
+                    <div class="stat-label" data-i18n="stat_competitions">Competitions</div>
+                </div>
+            </div>
+
+            <!-- Language Best Scores Row -->
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h4 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.5px;"
+                    data-i18n="stat_best_by_lang">
+                    Best Scores by Language</h4>
+                <div class="stats-grid" style="grid-template-columns:repeat(3,1fr); gap: 1rem;">
+                    <div class="stat-box" style="background: var(--surface-2); border: 1px solid var(--border);">
+                        <div class="stat-value" id="best-id" style="color: #22c55e;">0</div>
+                        <div class="stat-label">🇮🇩 Indonesia</div>
+                    </div>
+                    <div class="stat-box" style="background: var(--surface-2); border: 1px solid var(--border);">
+                        <div class="stat-value" id="best-en" style="color: #6366f1;">0</div>
+                        <div class="stat-label">🇺🇸 English</div>
+                    </div>
+                    <div class="stat-box" style="background: var(--surface-2); border: 1px solid var(--border);">
+                        <div class="stat-value" id="best-ar" style="color: #f59e0b;">0</div>
+                        <div class="stat-label">🇸🇦 Arabic</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Per-Language Chart -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1rem;" data-i18n="chart_wpm_per_lang">📈 WPM per
+                Bahasa</h3>
+
+            <div class="range-filters-wrap" id="range-filters">
+                <button class="range-filter" data-range="7d" data-i18n="range_7d">7 Hari</button>
+                <button class="range-filter" data-range="30d" data-i18n="range_30d">30 Hari</button>
+                <button class="range-filter" data-range="90d" data-i18n="range_90d">90 Hari</button>
+                <button class="range-filter active" data-range="all" data-i18n="range_all">Semua Waktu</button>
+            </div>
+
+            <div class="lang-tabs" id="chart-tabs">
+                <button class="lang-tab" data-lang="en">🇺🇸 EN</button>
+                <button class="lang-tab active" data-lang="id">🇮🇩 ID</button>
+                <button class="lang-tab" data-lang="ar">🇸🇦 AR</button>
+            </div>
+            <div id="chart-wrap" style="position:relative; height:220px;">
+                <canvas id="wpm-chart"></canvas>
+                <div id="chart-empty" class="no-data-msg" style="display:none;">
+                    Belum ada data untuk bahasa ini.<br>
+                    <a href="typing.html" style="color:var(--primary)">Mulai tes sekarang!</a>
+                </div>
+            </div>
+            <div class="lang-stats-row" id="lang-mini-stats"></div>
+        </div>
+
+        <!-- Recent Tests with Lang filter + Pagination -->
+        <div class="card">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1rem;" data-i18n="recent_activity">🕐 Recent
+                Tests</h3>
+            <div class="hist-filters" id="hist-filters">
+                <button class="hist-filter" data-lang="" data-i18n="hist_all">Semua</button>
+                <button class="hist-filter" data-lang="en">🇺🇸 EN</button>
+                <button class="hist-filter active" data-lang="id">🇮🇩 ID</button>
+                <button class="hist-filter" data-lang="ar">🇸🇦 AR</button>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="hist_date">Tanggal</th>
+                            <th data-i18n="hist_lang">Bahasa</th>
+                            <th data-i18n="hist_wpm">WPM</th>
+                            <th data-i18n="hist_acc">Akurasi</th>
+                            <th data-i18n="hist_correct">Kata Benar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-body">
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">Memuat…</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="lb-footer" style="padding:1rem; border-top:1px solid var(--border);">
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Visitors -->
+        <div class="card" id="visitors-card" style="margin-top:1.5rem; display:none;">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;">👥 Pengunjung Profil</h3>
+            <div id="visitors-list" style="display:flex; flex-wrap:wrap; gap:1rem;">
+                <div class="no-data-msg" style="padding:1rem;">Belum ada pengunjung.</div>
+            </div>
+            <div class="lb-footer" style="padding:1rem; border-top:1px solid var(--border); margin-top: 1rem;">
+                <div class="pagination" id="pg-visitors"></div>
+            </div>
+        </div>
+        <!-- Competition History -->
+        <div class="card" style="margin-top:1.5rem;">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;">🏆 Kompetisi yang Diikuti</h3>
+            <div id="comp-history-list" class="comp-list">
+                <p style="text-align:center;padding:1.5rem;color:var(--text-muted)">Memuat…</p>
+            </div>
+            <div class="lb-footer" style="padding:1rem; border-top:1px solid var(--border); margin-top: 1rem;">
+                <div class="pagination" id="pg-comp"></div>
+            </div>
+        </div>
+
+        <!-- Practice History -->
+        <div class="card" style="margin-top:1.5rem; margin-bottom: 2rem;">
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;">📝 Latihan yang Diselesaikan</h3>
+            <div id="practice-history-list" class="comp-list">
+                <p style="text-align:center;padding:1.5rem;color:var(--text-muted)">Memuat…</p>
+            </div>
+            <div class="lb-footer" style="padding:1rem; border-top:1px solid var(--border); margin-top: 1rem;">
+                <div class="pagination" id="pg-practice"></div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.05rem;font-weight:700;" data-i18n="profile_achievements">🏆 Achievements /
+                    Penghargaan</h3>
+            </div>
+
+            <div id="achievements-container">
+                <p style="text-align:center;padding:1.5rem;color:var(--text-muted)">Memuat…</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="../js/app.js"></script>
+    <script>
+        const API = '/mafatype/backend-php/api.php?action=';
+        let wpmChart = null;
+        let statsData = null; // profile-stats response
+        let currentLang = 'id';
+        let currentRange = 'all';
+        let histPage = 1;
+        let histLang = 'id';
+        let visitorPage = 1;
+        let compPage = 1;
+        let practicePage = 1;
+        let userId = null;
+
+        // ─── Chart ────────────────────────────────────────────────────────────
+        const LANG_COLORS = { en: '#6366f1', id: '#22c55e', ar: '#f59e0b' };
+        const LANG_LABELS = { en: '🇺🇸 English', id: '🇮🇩 Indonesia', ar: '🇸🇦 Arabic' };
+
+        function renderChart(lang) {
+            currentLang = lang; // Fix: Update state
+            const ctx = document.getElementById('wpm-chart');
+            const wrap = document.getElementById('chart-empty');
+            const mini = document.getElementById('lang-mini-stats');
+
+            const d = statsData?.by_language?.[lang];
+
+            if (!d || d.wpm_history.length === 0) {
+                ctx.style.display = 'none';
+                wrap.style.display = 'block';
+                mini.innerHTML = '';
+                return;
+            }
+
+            ctx.style.display = 'block';
+            wrap.style.display = 'none';
+
+            if (wpmChart) wpmChart.destroy();
+
+            const color = LANG_COLORS[lang] || '#6366f1';
+
+            wpmChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: d.history.map(h => h.short_date),
+                    datasets: [{
+                        label: 'WPM',
+                        data: d.history.map(h => h.wpm),
+                        borderColor: color,
+                        backgroundColor: color + '22',
+                        pointBackgroundColor: color,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.35,
+                        fill: true,
+                        // Store the full history objects for reference in tooltips
+                        extraData: d.history
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                title: (items) => {
+                                    const idx = items[0].dataIndex;
+                                    const meta = d.history[idx];
+                                    return meta.date;
+                                },
+                                label: (item) => {
+                                    const meta = d.history[item.dataIndex];
+                                    return [
+                                        `🚀 Speed: ${meta.wpm} WPM`,
+                                        `🎯 Accuracy: ${meta.accuracy}%`,
+                                        `✅ Correct: ${meta.correct_words} words`,
+                                        `❌ Wrong: ${meta.wrong_words} words`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(128,128,128,.1)' }, ticks: { font: { size: 11 } } },
+                        y: { beginAtZero: false, grid: { color: 'rgba(128,128,128,.1)' }, ticks: { font: { size: 11 } } }
+                    }
+                }
+            });
+
+            // Mini stat row
+            mini.innerHTML = `
+                <div class="lang-stat-item">
+                    <div class="lang-stat-value">${d.best_wpm}</div>
+                    <div class="lang-stat-label">Best WPM</div>
+                </div>
+                <div class="lang-stat-item">
+                    <div class="lang-stat-value">${d.avg_accuracy}%</div>
+                    <div class="lang-stat-label">Avg Accuracy</div>
+                </div>
+                <div class="lang-stat-item">
+                    <div class="lang-stat-value">${d.test_count}</div>
+                    <div class="lang-stat-label">Tests (${LANG_LABELS[lang]})</div>
+                </div>
+            `;
+        }
+
+        // ─── Chart tab click ──────────────────────────────────────────────────
+        document.getElementById('chart-tabs').addEventListener('click', e => {
+            const btn = e.target.closest('.lang-tab');
+            if (!btn) return;
+            document.querySelectorAll('.lang-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderChart(btn.dataset.lang);
+        });
+
+        // ─── Range filter click ───────────────────────────────────────────────
+        document.getElementById('range-filters').addEventListener('click', async e => {
+            const btn = e.target.closest('.range-filter');
+            if (!btn) return;
+            document.querySelectorAll('.range-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRange = btn.dataset.range;
+            await loadStats();
+        });
+
+        async function loadStats() {
+            if (!userId) return;
+            try {
+                const res = await fetch(`${API}profile-stats&user_id=${userId}&range=${currentRange}`);
+                if (!res.ok) throw new Error('API Error');
+                statsData = await res.json();
+                const ov = statsData.overall;
+
+                document.getElementById('stat-wpm').textContent = ov.best_wpm ?? '—';
+                document.getElementById('stat-acc').textContent = ov.avg_accuracy != null ? ov.avg_accuracy + '%' : '—';
+                document.getElementById('stat-total').textContent = ov.total_tests ?? '—';
+                document.getElementById('stat-comps').textContent = ov.total_competitions ?? '0';
+
+                // Display per-language bests
+                const bl = statsData.by_language;
+                document.getElementById('best-en').textContent = bl?.en?.best_wpm ?? '0';
+                document.getElementById('best-id').textContent = bl?.id?.best_wpm ?? '0';
+                document.getElementById('best-ar').textContent = bl?.ar?.best_wpm ?? '0';
+
+                renderChart(currentLang);
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // ─── Test History ─────────────────────────────────────────────────────
+        async function loadHistory(page = 1, lang = '') {
+            histPage = page;
+            histLang = lang;
+            const tbody = document.getElementById('recent-body');
+            const pgEl = document.getElementById('pagination');
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--text-muted)">${App.t('loading_dots')}</td></tr>`;
+
+            const qs = `user_id=${userId}&page=${page}&limit=10${lang ? '&lang=' + lang : ''}`;
+            const res = await fetch(API + 'test-history&' + qs);
+            const d = await res.json();
+
+            tbody.innerHTML = '';
+            if (!d.tests?.length) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">${App.t('no_tests_yet')}</td></tr>`;
+                pgEl.innerHTML = '';
+                return;
+            }
+
+            const icons = { en: '🇺🇸', id: '🇮🇩', ar: '🇸🇦' };
+            d.tests.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(r.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td>${icons[r.language] || '🌐'} ${r.language?.toUpperCase()}</td>
+                    <td style="font-weight:700;color:var(--primary)">${r.wpm}</td>
+                    <td>${parseFloat(r.accuracy).toFixed(1)}%</td>
+                    <td style="color:var(--correct)">${r.correct_words ?? '—'}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            renderPagination(pgEl, d.pages, page, (p) => loadHistory(p, histLang));
+        }
+
+        function renderPagination(container, totalPages, currentPage, onPageChange) {
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `<div class="pagination" style="margin: 1.5rem 0; gap: .35rem;">`;
+
+            // Prev
+            html += `<button class="pagination-btn" style="min-width:32px; height:32px; border-radius:.5rem;" onclick="(${onPageChange.toString().includes('loadHistory') ? '(p) => loadHistory(p, histLang)' : onPageChange.name})(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
+
+            const delta = 1;
+            let left = currentPage - delta;
+            let right = currentPage + delta;
+
+            if (left < 1) { right = Math.min(totalPages, right + (1 - left)); left = 1; }
+            if (right > totalPages) { left = Math.max(1, left - (right - totalPages)); right = totalPages; }
+
+            if (left > 1) {
+                html += `<button class="pagination-btn" style="min-width:32px; height:32px; border-radius:.5rem;" onclick="(${onPageChange.toString().includes('loadHistory') ? '(p) => loadHistory(p, histLang)' : onPageChange.name})(1)">1</button>`;
+                if (left > 2) html += `<span style="color:var(--text-muted); align-self:center;">..</span>`;
+            }
+
+            for (let i = left; i <= right; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" style="min-width:32px; height:32px; border-radius:.5rem;" onclick="(${onPageChange.toString().includes('loadHistory') ? '(p) => loadHistory(p, histLang)' : onPageChange.name})(${i})">${i}</button>`;
+            }
+
+            if (right < totalPages) {
+                if (right < totalPages - 1) html += `<span style="color:var(--text-muted); align-self:center;">..</span>`;
+                html += `<button class="pagination-btn" style="min-width:32px; height:32px; border-radius:.5rem;" onclick="(${onPageChange.toString().includes('loadHistory') ? '(p) => loadHistory(p, histLang)' : onPageChange.name})(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next
+            html += `<button class="pagination-btn" style="min-width:32px; height:32px; border-radius:.5rem;" onclick="(${onPageChange.toString().includes('loadHistory') ? '(p) => loadHistory(p, histLang)' : onPageChange.name})(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>&raquo;</button>`;
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // ─── History language filter ──────────────────────────────────────────
+        document.getElementById('hist-filters').addEventListener('click', e => {
+            const btn = e.target.closest('.hist-filter');
+            if (!btn) return;
+            document.querySelectorAll('.hist-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadHistory(1, btn.dataset.lang);
+        });
+
+        // ─── Init ─────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loggedInUser = App.getUser();
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewUserId = urlParams.get('user_id');
+
+            if (viewUserId && (!loggedInUser || viewUserId != loggedInUser.id)) {
+                // Viewing someone else's profile
+                userId = viewUserId;
+                try {
+                    const res = await fetch(`${API}user-info&user_id=${userId}`);
+                    if (!res.ok) throw new Error('User not found');
+                    const data = await res.json();
+                    const profileUser = data.user;
+
+                    document.getElementById('profile-avatar').textContent = profileUser.username[0].toUpperCase();
+                    document.getElementById('profile-name').textContent = profileUser.username;
+                    document.getElementById('profile-email').textContent = App.t('public_profile');
+
+                    document.getElementById('display-kelas').textContent = `${App.t('class_label')}${profileUser.kelas || '—'}`;
+                    document.getElementById('display-daerah').textContent = `${App.t('region_label')}${profileUser.daerah || '—'}`;
+                    document.getElementById('display-last-activity').textContent = `${App.t('active_label')}${profileUser.last_activity_fmt || '—'}`;
+
+                    // Hide Logout button if viewing someone else
+                    const logoutBtn = document.querySelector('button[onclick="App.logout()"]');
+                    if (logoutBtn) logoutBtn.style.display = 'none';
+
+                    // Record visit if logged in
+                    if (loggedInUser) {
+                        fetch(API + 'record-profile-visit', {
+                            method: 'POST',
+                            body: JSON.stringify({ owner_id: userId, visitor_id: loggedInUser.id })
+                        }).catch(err => console.error('Error recording visit:', err));
+                    }
+
+                } catch (err) {
+                    console.error('Error fetching user info:', err);
+                    App.toast(App.t('user_not_found'), 'error');
+                    // window.location.href = 'index.html'; // Removed redirect to allow debugging/standard state
+                    return;
+                }
+            } else {
+                // Viewing own profile
+                if (!loggedInUser) { window.location.href = 'login.html'; return; }
+                userId = loggedInUser.id;
+
+                document.getElementById('profile-avatar').textContent = loggedInUser.username[0].toUpperCase();
+                document.getElementById('profile-name').textContent = loggedInUser.username;
+                document.getElementById('profile-email').textContent = loggedInUser.email;
+
+                document.getElementById('display-kelas').textContent = `${App.t('class_label')}${loggedInUser.kelas || '—'}`;
+                document.getElementById('display-daerah').textContent = `${App.t('region_label')}${loggedInUser.daerah || '—'}`;
+
+                // Fetch full info to get last_activity for self
+                fetch(`${API}user-info&user_id=${userId}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.user) document.getElementById('display-last-activity').textContent = `${App.t('active_label')}${d.user.last_activity_fmt || '—'}`;
+                    });
+            }
+
+            // Always show visitors card and load them (public)
+            document.getElementById('visitors-card').style.display = 'block';
+            loadVisitors();
+
+            // Load all stats centrally
+            await loadStats();
+
+            // Load first page of test history (Default: ID)
+            loadHistory(1, 'id');
+
+            // Load competition history
+            loadUserCompetitions();
+
+            // Load practice history
+            loadUserPracticeHistory();
+
+            // Load achievements
+            loadAchievements();
+        });
+
+        async function loadAchievements() {
+            const container = document.getElementById('achievements-container');
+            if (!userId) return;
+
+            try {
+                const res = await fetch(`${API}get-user-achievements&user_id=${userId}`);
+                const data = await res.json();
+                if (!data.achievements) throw new Error('Failed to load');
+
+                // Group by category
+                const groups = {
+                    'typing_speed': 'Typing Speed',
+                    'typing_activity': 'Typing Activity',
+                    'accuracy': 'Accuracy',
+                    'practice_training': 'Practice Training',
+                    'finger_training': 'Finger Training',
+                    'competition': 'Competition',
+                    'special': 'Special'
+                };
+
+                let html = '';
+                for (const cat in groups) {
+                    const achs = data.achievements.filter(a => a.category === cat);
+                    if (achs.length === 0) continue;
+
+                    html += `
+                        <div class="ach-category">
+                            <div class="ach-category-title">${groups[cat]}</div>
+                            <div class="ach-grid">
+                                ${achs.map(a => `
+                                    <div class="ach-badge ${a.is_unlocked ? 'unlocked' : 'locked'}">
+                                        <div class="ach-icon">${a.badge_icon}</div>
+                                        <div class="ach-name">${a.title}</div>
+                                        <div class="ach-tooltip">
+                                            <span class="ach-tooltip-title">${a.title}</span>
+                                            <span class="ach-tooltip-desc">${a.description}</span>
+                                            <div class="ach-tooltip-status">
+                                                <span class="ach-status-label">${App.t('ach_status')}</span>
+                                                <span class="ach-status-value">
+                                                    ${a.is_unlocked
+                            ? App.t('ach_unlocked') + ' (' + new Date(a.unlocked_at).toLocaleDateString(App.lang === 'ar' ? 'ar-SA' : (App.lang === 'id' ? 'id-ID' : 'en-US')) + ')'
+                            : App.t('ach_locked')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html || `<p style="text-align:center;padding:1rem;color:var(--text-muted)">${App.t('no_achievements')}</p>`;
+            } catch (err) {
+                console.error('Error loading achievements:', err);
+                container.innerHTML = `<p style="text-align:center;padding:1rem;color:var(--danger)">${App.t('error_achievements')}</p>`;
+            }
+        }
+
+        async function loadVisitors(page = 1) {
+            visitorPage = page;
+            const listEl = document.getElementById('visitors-list');
+            const pgEl = document.getElementById('pg-visitors');
+            try {
+                const res = await fetch(`${API}get-profile-visitors&user_id=${userId}&page=${page}&limit=12`);
+                const data = await res.json();
+                if (!data.visitors || data.visitors.length === 0) {
+                    listEl.innerHTML = `<div class="no-data-msg" style="padding:1rem;">${App.t('no_visitors_yet') || 'Belum ada pengunjung.'}</div>`;
+                    pgEl.innerHTML = '';
+                    return;
+                }
+
+                listEl.innerHTML = data.visitors.map(v => `
+                    <a href="profile.html?user_id=${v.id}" class="visitor-item" style="text-decoration:none; display:flex; align-items:center; gap:.5rem; background:var(--surface-2); border:1px solid var(--border); padding:.5rem .75rem; border-radius:50px; color:var(--text);">
+                        <div style="width:24px; height:24px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700;">
+                            ${v.username[0].toUpperCase()}
+                        </div>
+                        <div style="font-size:.85rem; font-weight:600;">${v.username}</div>
+                    </a>
+                `).join('');
+
+                renderPagination(pgEl, data.pages, page, loadVisitors);
+            } catch (err) {
+                console.error('Error loading visitors:', err);
+                listEl.innerHTML = `<div class="no-data-msg" style="padding:1rem;">${App.t('error_visitors')}</div>`;
+                pgEl.innerHTML = '';
+            }
+        }
+
+        async function loadUserCompetitions(page = 1) {
+            compPage = page;
+            const container = document.getElementById('comp-history-list');
+            const pgEl = document.getElementById('pg-comp');
+            if (!userId) return;
+
+            try {
+                container.innerHTML = `<p style="text-align:center;padding:1.5rem;color:var(--text-muted)">${App.t('loading_dots')}</p>`;
+                const res = await fetch(`${API}user-competitions&user_id=${userId}&page=${page}&limit=5`);
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.error || `Server Error ${res.status}`);
+                }
+                const data = await res.json();
+
+                if (!data.competitions || data.competitions.length === 0) {
+                    container.innerHTML = `<div class="no-data-msg">${App.t('no_comp_history')}</div>`;
+                    pgEl.innerHTML = '';
+                    return;
+                }
+
+                container.innerHTML = '';
+                const langIcons = { en: '🇺🇸', id: '🇮🇩', ar: '🇸🇦' };
+
+                data.competitions.forEach(c => {
+                    const item = document.createElement('a');
+                    item.href = `competition.html?id=${c.id}`;
+                    item.className = 'comp-item';
+                    item.innerHTML = `
+                        <div class="comp-item-info">
+                            <h4>${c.title}</h4>
+                            <div class="comp-item-meta">
+                                <span>${langIcons[c.language] || '🌐'} ${c.language.toUpperCase()}</span>
+                                <span style="font-weight: 700; color: var(--primary);">🏆 Rank ${c.rank} / ${c.total_participants}</span>
+                                <span>📅 ${new Date(c.first_joined).toLocaleDateString('id-ID')}</span>
+                                <span>🔄 ${c.attempts}${App.t('attempts_count')}</span>
+                            </div>
+                        </div>
+                        <div class="comp-item-stats">
+                            <div class="comp-item-wpm">${c.best_wpm} WPM</div>
+                            <div class="comp-item-acc">${parseFloat(c.best_accuracy).toFixed(1)}% Acc</div>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+
+                renderPagination(pgEl, data.pages, page, loadUserCompetitions);
+            } catch (err) {
+                console.error('Error loading user competitions:', err);
+                container.innerHTML = `<p style="text-align:center;padding:1rem;color:var(--danger)">${App.t('error_load_comp')}${err.message}</p>`;
+                pgEl.innerHTML = '';
+            }
+        }
+
+        async function loadUserPracticeHistory(page = 1) {
+            practicePage = page;
+            const container = document.getElementById('practice-history-list');
+            const pgEl = document.getElementById('pg-practice');
+            if (!userId) return;
+
+            try {
+                container.innerHTML = `<p style="text-align:center;padding:1.5rem;color:var(--text-muted)">${App.t('loading_dots')}</p>`;
+                const res = await fetch(`${API}user-practice-history&user_id=${userId}&page=${page}&limit=5`);
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.error || `Server Error ${res.status}`);
+                }
+                const data = await res.json();
+
+                if (!data.practices || data.practices.length === 0) {
+                    container.innerHTML = `<div class="no-data-msg">${App.t('no_practice_history')}</div>`;
+                    pgEl.innerHTML = '';
+                    return;
+                }
+
+                container.innerHTML = '';
+                const langIcons = { en: '🇺🇸', id: '🇮🇩', ar: '🇸🇦' };
+                const diffLabels = { easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' };
+
+                data.practices.forEach(p => {
+                    const item = document.createElement('a');
+                    item.href = `practice.html?id=${p.id}`; // Assuming practice.html can take an ID
+                    item.className = 'comp-item';
+                    item.innerHTML = `
+                        <div class="comp-item-info">
+                            <h4>${p.title}</h4>
+                            <div class="comp-item-meta">
+                                <span>${langIcons[p.language] || '🌐'} ${p.language.toUpperCase()}</span>
+                                <span>🎯 ${diffLabels[p.difficulty] || p.difficulty}</span>
+                                <span>🔄 ${p.attempts}${App.t('attempts_count')}</span>
+                            </div>
+                        </div>
+                        <div class="comp-item-stats">
+                            <div class="comp-item-wpm">${p.best_wpm} WPM</div>
+                            <div class="comp-item-acc">${parseFloat(p.best_accuracy).toFixed(1)}% Acc</div>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+
+                renderPagination(pgEl, data.pages, page, loadUserPracticeHistory);
+            } catch (err) {
+                console.error('Error loading user practice history:', err);
+                container.innerHTML = `<p style="text-align:center;padding:1rem;color:var(--danger)">${App.t('error_load_practice')}${err.message}</p>`;
+                pgEl.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+
+</html>

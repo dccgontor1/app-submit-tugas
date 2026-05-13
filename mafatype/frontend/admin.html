@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — Mafatype.</title>
+    <link rel="stylesheet" href="../css/admin.css?v=8">
+    <script src="../js/site-sync.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ══════════════════════════════════════════════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════════════════════════════════════════════ -->
+        <aside id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo">⌨️</div>
+                <div>
+                    <div class="brand-text site-name-text">Mafatype.</div>
+                    <div class="brand-sub">Admin Panel</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Overview</div>
+                <div class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span data-i18n="admin_nav_dashboard">Dashboard</span>
+                </div>
+
+                <div class="nav-section-label">Manajemen</div>
+                <div class="nav-item" data-section="users" onclick="navigate('users')">
+                    <span class="nav-icon">👤</span>
+                    <span data-i18n="admin_nav_users">Users</span>
+                </div>
+                <div class="nav-item" data-section="words" onclick="navigate('words')">
+                    <span class="nav-icon">📝</span>
+                    <span data-i18n="admin_nav_words">Word Lists</span>
+                </div>
+                <div class="nav-item" data-section="results" onclick="navigate('results')">
+                    <span class="nav-icon">⌨️</span>
+                    <span data-i18n="admin_nav_results">Typing Results</span>
+                </div>
+                <div class="nav-item" data-section="leaderboard" onclick="navigate('leaderboard')">
+                    <span class="nav-icon">🏆</span>
+                    <span data-i18n="nav_leaderboard">Leaderboard</span>
+                </div>
+                <div class="nav-item" data-section="competitions" onclick="navigate('competitions')">
+                    <span class="nav-icon">🏁</span>
+                    <span data-i18n="admin_nav_competitions">Competitions</span>
+                </div>
+                <div class="nav-item" data-section="practice" onclick="navigate('practice')">
+                    <span class="nav-icon">✍️</span>
+                    <span data-i18n="admin_nav_practice">Practice Texts</span>
+                </div>
+                <div class="nav-item" data-section="achievements" onclick="navigate('achievements')">
+                    <span class="nav-icon">🏆</span>
+                    <span data-i18n="admin_nav_achievements">Achievements</span>
+                </div>
+
+                <div class="nav-section-label">Monitoring</div>
+                <div class="nav-item" data-section="multiplayer" onclick="navigate('multiplayer')">
+                    <span class="nav-icon">🎮</span>
+                    <span data-i18n="admin_nav_multiplayer">Multiplayer</span>
+                    <span class="nav-badge">Live</span>
+                </div>
+                <div class="nav-item" data-section="statistics" onclick="navigate('statistics')">
+                    <span class="nav-icon">📈</span>
+                    <span data-i18n="admin_nav_statistics">Statistics</span>
+                </div>
+
+                <div class="nav-section-label">Sistem</div>
+                <div class="nav-item" data-section="settings" onclick="navigate('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span data-i18n="admin_nav_settings">Settings</span>
+                </div>
+                <div class="nav-item" data-section="logs" onclick="navigate('logs')">
+                    <span class="nav-icon">📋</span>
+                    <span data-i18n="admin_nav_logs">Activity Logs</span>
+                </div>
+
+                <div style="margin-top:1rem;padding:0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+                    <a href="index.html" class="btn" style="width:100%;justify-content:center;font-size:.78rem;"
+                        data-i18n="back_to_website">
+                        ← Kembali ke Website
+                    </a>
+                    <button class="btn btn-danger" style="width:100%;justify-content:center;font-size:.78rem;" onclick="App.logout()">
+                        🚪 Keluar (Logout)
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="admin-user">
+                    <div class="admin-avatar">👤</div>
+                    <div class="admin-info">
+                        <div class="admin-name" id="admin-username">Admin</div>
+                        <div class="admin-role">Administrator</div>
+                    </div>
+                    <button class="admin-logout-btn" onclick="App.logout()" title="Logout">
+                        🚪
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════════════════════════════════════════════════════════════════
+         MAIN
+    ═══════════════════════════════════════════════════════════════════════ -->
+        <div id="main">
+
+            <!-- Topbar -->
+            <header id="topbar">
+                <div class="topbar-left">
+                    <div class="page-title" id="page-title" data-i18n="admin_nav_dashboard">📊 Dashboard</div>
+                </div>
+                <div class="topbar-right">
+                    <span class="topbar-time" id="topbar-time"></span>
+                    <button class="icon-btn refresh-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+                    <button class="refresh-btn" onclick="navigate(currentSection)" title="Refresh">↻</button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div id="content">
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 DASHBOARD
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-dashboard" class="section active">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon">👥</div>
+                            <div class="kpi-value" id="kpi-users">—</div>
+                            <div class="kpi-label" data-i18n="admin_total_users">Total Users</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">⌨️</div>
+                            <div class="kpi-value" id="kpi-tests">—</div>
+                            <div class="kpi-label" data-i18n="admin_total_tests">Total Tes</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🏁</div>
+                            <div class="kpi-value" id="kpi-comps">—</div>
+                            <div class="kpi-label" data-i18n="admin_total_comps">Total Kompetisi</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🔥</div>
+                            <div class="kpi-value" id="kpi-active">—</div>
+                            <div class="kpi-label" data-i18n="active_competitions">Kompetisi Aktif</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">⚡</div>
+                            <div class="kpi-value" id="kpi-kpm">—</div>
+                            <div class="kpi-label" data-i18n="avg_kpm">Rata-rata KPM</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🥇</div>
+                            <div class="kpi-value" id="kpi-top" style="font-size:1.2rem;">—</div>
+                            <div class="kpi-label" data-i18n="top_user">Top User</div>
+                            <div class="kpi-delta" id="kpi-topscore">—</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <div class="chart-title" data-i18n="admin_daily_activity">Aktivitas Tes Harian (14 hari)
+                            </div>
+                            <canvas id="chart-activity"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title" data-i18n="admin_weekly_users">User Aktif Mingguan (8 minggu)</div>
+                            <canvas id="chart-growth"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 USERS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-users" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_user_list">Daftar User</div>
+                            <div class="card-actions">
+                                <div class="filter-bar">
+                                    <input type="text" id="user-search-input" class="search-input"
+                                        placeholder="🔍 Cari username / email…"
+                                        data-i18n-placeholder="search_user_placeholder">
+                                    <select id="user-exam-filter" class="filter-select" onchange="loadUsers(1)">
+                                        <option value="all" data-i18n="all_exam_status">Semua Status Lulus</option>
+                                        <option value="passed" data-i18n="exam_passed">Lulus (PASSED)</option>
+                                        <option value="failed" data-i18n="exam_failed">Belum Lulus (NOT PASSED)</option>
+                                    </select>
+                                    <button class="btn" onclick="exportUserScoresCSV()" data-i18n="export_scores">📊
+                                        Export Nilai</button>
+                                    <button class="btn" onclick="exportAllUsersPDF()" title="Export Semua User ke PDF"
+                                        data-i18n="pdf_report">📄 PDF Report</button>
+                                    <button class="btn" onclick="openModal('modal-mass-edit')" data-i18n="mass_edit">📝
+                                        Edit Massal</button>
+                                    <button class="btn" onclick="openModal('modal-import-users')"
+                                        data-i18n="import_csv">📥 Import CSV</button>
+                                    <button class="btn btn-primary" onclick="openAddUser()" data-i18n="add_user">➕
+                                        Tambah User</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Actions Bar -->
+                        <div id="users-bulk-actions"
+                            style="display:none; padding: 0.75rem 1rem; background: rgba(var(--primary-rgb), 0.1); border-radius: var(--radius); margin-bottom: 1rem; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span id="users-selected-count"
+                                    style="font-weight: 600; color: var(--primary);">0</span> user terpilih
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <select id="users-bulk-action-select" class="form-select"
+                                    style="padding: 0.35rem; font-size: 0.8rem;">
+                                    <option value="">-- Pilih Aksi Massal --</option>
+                                    <option value="role">Ubah Role</option>
+                                    <option value="kelas">Ubah Kelas</option>
+                                    <option value="status">Ubah Status</option>
+                                    <option value="delete">Hapus User</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm" onclick="applyBulkUserAction()">Terapkan</button>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px; text-align: center;"><input type="checkbox"
+                                                id="user-select-all" onchange="toggleSelectAllUsers()"></th>
+                                        <th class="sortable" data-sort="id">#</th>
+                                        <th class="sortable" data-sort="username" data-i18n="username">Username</th>
+                                        <th class="sortable" data-sort="email" data-i18n="email">Email</th>
+                                        <th class="sortable" data-sort="role" data-i18n="role">Role</th>
+                                        <th class="sortable" data-sort="kelas" data-i18n="class_label">Kelas</th>
+                                        <th class="sortable" data-sort="status" data-i18n="status">Status</th>
+                                        <th class="sortable" data-sort="test_count" data-i18n="admin_tests">Tes</th>
+                                        <th class="sortable" data-sort="best_kpm" data-i18n="best_kpm">Best KPM</th>
+                                        <th data-i18n="exam_status">Status Lulus</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <tr>
+                                        <td colspan="10">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="users-pagination" class="pagination"></div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 WORDS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-words" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_words">Word Lists</div>
+                            <div class="card-actions">
+                                <input type="text" id="word-search-input" class="search-input"
+                                    placeholder="🔍 Cari kata…" data-i18n-placeholder="search_word_placeholder">
+                                <button class="btn" onclick="openModal('modal-import')" data-i18n="import_csv">📥 Import
+                                    CSV</button>
+                                <button class="btn btn-primary" onclick="openAddWord()" data-i18n="add_word">➕ Tambah
+                                    Kata</button>
+                            </div>
+                        </div>
+                        <div class="tab-bar">
+                            <div class="tab lang-tab active" data-lang="id" onclick="loadWords(1,'id')">🇮🇩 Indonesian
+                            </div>
+                            <div class="tab lang-tab" data-lang="en" onclick="loadWords(1,'en')">🇺🇸 English</div>
+                            <div class="tab lang-tab" data-lang="ar" onclick="loadWords(1,'ar')">🇸🇦 Arabic</div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th data-i18n="language">Bahasa</th>
+                                        <th data-i18n="word">Kata</th>
+                                        <th data-i18n="added_at">Ditambahkan</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="words-tbody">
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="words-pagination" class="pagination"></div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 TYPING RESULTS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-results" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_results">Hasil Tes Mengetik</div>
+                            <div class="card-actions">
+                                <select id="result-lang-filter" class="filter-select">
+                                    <option value="" data-i18n="all_languages">Semua Bahasa</option>
+                                    <option value="id">🇮🇩 Indonesian</option>
+                                    <option value="en">🇺🇸 English</option>
+                                    <option value="ar">🇸🇦 Arabic</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th data-i18n="user">User</th>
+                                        <th data-i18n="language">Bahasa</th>
+                                        <th data-i18n="kpm">KPM</th>
+                                        <th data-i18n="accuracy_long">Akurasi</th>
+                                        <th data-i18n="correct">Benar</th>
+                                        <th data-i18n="wrong">Salah</th>
+                                        <th data-i18n="hist_date">Tanggal</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-tbody">
+                                    <tr>
+                                        <td colspan="9">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="results-pagination" class="pagination"></div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 LEADERBOARD
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-leaderboard" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="nav_leaderboard">🏆 Leaderboard</div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="rank">Rank</th>
+                                        <th data-i18n="user">User</th>
+                                        <th data-i18n="kpm">KPM</th>
+                                        <th data-i18n="accuracy_long">Akurasi</th>
+                                        <th data-i18n="language">Bahasa</th>
+                                        <th data-i18n="hist_date">Tanggal</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lb-tbody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="lb-pagination" class="pagination"></div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 COMPETITIONS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-competitions" class="section">
+                    <div class="card-header" style="margin-bottom:1rem;">
+                        <div class="card-title" data-i18n="admin_nav_competitions">🏁 Competitions</div>
+                        <button class="btn btn-primary" onclick="openAddComp()" data-i18n="create_comp">➕ Buat
+                            Kompetisi</button>
+                    </div>
+                    <div id="comps-container">
+                        <div class="loading">
+                            <div class="spinner"></div> Memuat…
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 PRACTICE TEXTS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-practice" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_practice">✍️ Practice Texts</div>
+                            <div class="card-actions">
+                                <select id="practice-lang-filter" class="filter-select" onchange="loadPracticeTexts()">
+                                    <option value="" data-i18n="all_languages">Semua Bahasa</option>
+                                    <option value="id">🇮🇩 Indonesian</option>
+                                    <option value="en">🇺🇸 English</option>
+                                    <option value="ar">🇸🇦 Arabic</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="openAddPractice()" data-i18n="add_text">➕
+                                    Tambah Teks</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th data-i18n="text_title">Judul</th>
+                                        <th data-i18n="language">Bahasa</th>
+                                        <th data-i18n="difficulty">Difficulty</th>
+                                        <th data-i18n="characters">Karakter</th>
+                                        <th data-i18n="status">Status</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="practice-tbody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 ACHIEVEMENTS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-achievements" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_achievements">🏆 Achievements</div>
+                            <div class="card-actions">
+                                <button class="btn btn-primary" onclick="openAddAchievement()"
+                                    data-i18n="add_achievement">➕ Tambah Achievement</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th data-i18n="badge">Badge</th>
+                                        <th data-i18n="title">Judul</th>
+                                        <th data-i18n="category">Kategori</th>
+                                        <th data-i18n="requirements">Persyaratan</th>
+                                        <th data-i18n="action">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="achievements-tbody">
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="loading">
+                                                <div class="spinner"></div> Memuat…
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 MULTIPLAYER MONITOR
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-multiplayer" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_multiplayer">🎮 Multiplayer Monitor</div>
+                            <div class="card-actions">
+                                <div id="mp-status"><span class="badge badge-offline">● Memeriksa…</span></div>
+                                <div id="mp-server-controls" style="display:flex; gap:0.5rem; align-items:center;">
+                                    <button class="btn btn-sm btn-primary" id="admin-btn-start-server"
+                                        onclick="startNodeServer()" style="display:none" data-i18n="start_server">▶
+                                        Jalankan Server</button>
+                                    <button class="btn btn-sm btn-danger" id="admin-btn-stop-server"
+                                        onclick="stopNodeServer()" style="display:none" data-i18n="stop_server">⏹
+                                        Matikan Server</button>
+                                </div>
+                                <span style="font-size:.75rem;color:var(--text-2)"
+                                    data-i18n="auto_refresh_5s">Auto-refresh setiap 5 detik</span>
+                            </div>
+                        </div>
+                        <div id="mp-content">
+                            <div class="loading">
+                                <div class="spinner"></div> Menghubungi server…
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 STATISTICS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-statistics" class="section">
+                    <div class="stats-chart-grid" style="margin-bottom:1rem;">
+                        <div class="chart-card">
+                            <div class="chart-title">Tes per Hari (30 hari)</div>
+                            <canvas id="chart-daily"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">Rata-rata KPM per Hari</div>
+                            <canvas id="chart-avg-kpm"></canvas>
+                        </div>
+                    </div>
+                    <div class="stats-chart-grid">
+                        <div class="chart-card">
+                            <div class="chart-title">Distribusi Bahasa</div>
+                            <canvas id="chart-lang" style="max-height:220px;"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">User Paling Aktif (Top 10)</div>
+                            <canvas id="chart-top-users"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 SETTINGS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-settings" class="section">
+                    <form onsubmit="saveSettings(event)">
+                        <div class="settings-group">
+                            <div class="settings-group-title" data-i18n="general_settings">⚙️ Pengaturan Umum</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="site_name">Nama Website</div>
+                                    <div class="setting-desc" data-i18n="site_name_desc">Nama yang ditampilkan di
+                                        seluruh halaman</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-site-name" class="form-input" style="width:200px" value="Mafatype.">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="default_language">Bahasa Default</div>
+                                    <div class="setting-desc" data-i18n="default_language_desc">Bahasa yang dipilih saat
+                                        pertama kali membuka website
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <select id="set-default-lang" class="form-select" style="width:140px">
+                                        <option value="id">Indonesian</option>
+                                        <option value="en">English</option>
+                                        <option value="ar">Arabic</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Custom Slogan Section -->
+                            <div class="divider"></div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: var(--primary);">Custom Slogan (Hero Title)</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Slogan (Indonesian)</div>
+                                    <div class="setting-desc">Slogan untuk bahasa Indonesia</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-slogan-id" class="form-input" style="width:300px" placeholder="Master Your Typing Speed.">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Slogan (English)</div>
+                                    <div class="setting-desc">Slogan for English language</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-slogan-en" class="form-input" style="width:300px" placeholder="Master Your Typing Speed.">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Slogan (Arabic)</div>
+                                    <div class="setting-desc">Slogan untuk bahasa Arab</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-slogan-ar" class="form-input" style="width:300px" placeholder="أتقن سرعة كتابتك.">
+                                </div>
+                            </div>
+
+                            <!-- Custom Description Section -->
+                            <div class="divider" style="margin-top: 1.5rem;"></div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: var(--primary);">Custom Web Description (Hero Sub & Tagline)</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Deskripsi (Indonesian)</div>
+                                    <div class="setting-desc">Deskripsi untuk bahasa Indonesia</div>
+                                </div>
+                                <div class="setting-control">
+                                    <textarea id="set-desc-id" class="form-input" style="width:300px; height: 60px;"></textarea>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Deskripsi (English)</div>
+                                    <div class="setting-desc">Description for English language</div>
+                                </div>
+                                <div class="setting-control">
+                                    <textarea id="set-desc-en" class="form-input" style="width:300px; height: 60px;"></textarea>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Deskripsi (Arabic)</div>
+                                    <div class="setting-desc">Deskripsi untuk bahasa Arab</div>
+                                </div>
+                                <div class="setting-control">
+                                    <textarea id="set-desc-ar" class="form-input" style="width:300px; height: 60px;"></textarea>
+                                </div>
+                            </div>
+                            <div class="setting-row" style="display: none;">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="allow_registration">Izinkan Registrasi</div>
+                                    <div class="setting-desc" data-i18n="allow_registration_desc">Matikan untuk mencegah
+                                        pendaftaran user baru</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="set-allow-reg" checked>
+                                        <span class="toggle-track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="setting-row" style="display: none;">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="maintenance_mode">Mode Pemeliharaan</div>
+                                    <div class="setting-desc" data-i18n="maintenance_mode_desc">Tampilkan halaman
+                                        maintenance untuk semua user</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="set-maintenance">
+                                        <span class="toggle-track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title" data-i18n="website_appearance">🎨 Tampilan Website</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="site_logo">Logo Website</div>
+                                    <div class="setting-desc" data-i18n="site_logo_desc">Upload logo untuk sidebar dan
+                                        halaman utama</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div style="display:flex; align-items:center; gap:1rem;">
+                                        <div id="logo-preview-container"
+                                            style="width: 40px; height: 40px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); display: grid; place-items: center; overflow: hidden;">
+                                            <span id="logo-preview-placeholder">⌨️</span>
+                                            <img id="logo-preview-img"
+                                                style="display:none; max-width:100%; max-height:100%; object-fit:contain;">
+                                        </div>
+                                        <input type="file" id="set-logo-file" accept="image/*" style="display:none;"
+                                            onchange="previewLogo(event)">
+                                        <button type="button" class="btn btn-sm"
+                                            onclick="document.getElementById('set-logo-file').click()">Pilih
+                                            Logo</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="base_color">Warna Dasar Website</div>
+                                    <div class="setting-desc" data-i18n="base_color_desc">Warna utama untuk tombol,
+                                        icon, dan aksen</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="color" id="set-base-color" class="form-input"
+                                        style="width:60px; height:40px; padding:2px;" value="#f97316">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title" data-i18n="multiplayer_settings">🎮 Pengaturan Multiplayer
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="max_players">Maks. Pemain per Room</div>
+                                    <div class="setting-desc" data-i18n="max_players_desc">Jumlah maksimal pemain dalam
+                                        satu room multiplayer</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-max-players" type="number" class="form-input" style="width:80px"
+                                        min="2" max="1000" value="4">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="node_url">URL Node.js Server</div>
+                                    <div class="setting-desc" data-i18n="node_url_desc">URL Socket.IO server untuk
+                                        multiplayer</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-node-url" class="form-input" style="width:220px"
+                                        placeholder="http://localhost:3001">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title">🎯 Pengaturan Tes & Latihan</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Minimal WPM (Tes Indonesia)</div>
+                                    <div class="setting-desc">Syarat minimal kecepatan untuk tes bahasa Indonesia</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-min-wpm-id" type="number" class="form-input" style="width:80px"
+                                        min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Minimal WPM (Tes Inggris)</div>
+                                    <div class="setting-desc">Syarat minimal kecepatan untuk tes bahasa Inggris</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-min-wpm-en" type="number" class="form-input" style="width:80px"
+                                        min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Minimal WPM (Tes Arab)</div>
+                                    <div class="setting-desc">Syarat minimal kecepatan untuk tes bahasa Arab</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-min-wpm-ar" type="number" class="form-input" style="width:80px"
+                                        min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Minimal Mencoba Per Latihan</div>
+                                    <div class="setting-desc">Jumlah minimal tes untuk setiap judul latihan teks agar
+                                        dianggap selesai</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-min-try-practice" type="number" class="form-input" style="width:80px"
+                                        min="1" value="1">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Minimal Mencoba Per Latihan Jari</div>
+                                    <div class="setting-desc">Jumlah minimal tes untuk setiap jari agar dianggap selesai
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <input id="set-min-try-finger" type="number" class="form-input" style="width:80px"
+                                        min="1" value="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title">🏆 Kustom Predikat Hasil</div>
+                            <div class="setting-row" style="flex-direction: column; align-items: stretch;">
+                                <div class="setting-info" style="margin-bottom: 1rem;">
+                                    <div class="setting-label">Tabel Predikat Lulus</div>
+                                    <div class="setting-desc">Atur WPM, Rating, dan Deskripsi untuk hasil tes</div>
+                                </div>
+                                <div class="table-scroll">
+                                    <table id="table-ratings" class="lb-table">
+                                        <thead>
+                                            <tr>
+                                                <th>WPM ≥</th>
+                                                <th>Rating</th>
+                                                <th>Deskripsi</th>
+                                                <th style="width: 50px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ratings-tbody">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="4" style="text-align: right; padding: 1rem;">
+                                                    <button type="button" class="btn btn-sm" onclick="addRatingRow()">+
+                                                        Tambah Baris</button>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group"
+                            style="border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+                            <div class="settings-group-title" style="color: #ef4444;">⚠️ Danger Zone</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label" data-i18n="clean_web_data">Bersihkan Data Web</div>
+                                    <div class="setting-desc" data-i18n="clean_web_data_desc">Pilih kategori data (User,
+                                        Kompetisi, Hasil Tes, dll.) yang ingin dibersihkan secara permanen dari sistem.
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button type="button" class="btn btn-danger" onclick="resetData()">🗑 Atur
+                                        Pembersihan Data</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align:right;">
+                            <button type="submit" class="btn btn-primary" data-i18n="save_settings">💾 Simpan
+                                Pengaturan</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════════════════
+                 ACTIVITY LOGS
+            ══════════════════════════════════════════════════════════════ -->
+                <section id="sec-logs" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="admin_nav_logs">📋 Activity Logs</div>
+                            <button class="btn" onclick="loadLogs(1)" data-i18n="refresh">↻ Refresh</button>
+                        </div>
+                        <div id="logs-list">
+                            <div class="loading">
+                                <div class="spinner"></div> Memuat…
+                            </div>
+                        </div>
+                        <div style="text-align:center;margin-top:1rem;">
+                            <button class="btn" onclick="loadLogs(logPage+1)" data-i18n="load_more">Muat lebih banyak
+                                ↓</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div><!-- /content -->
+        </div><!-- /main -->
+    </div><!-- /app -->
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Modal: Import Users CSV -->
+    <div id="modal-import-users" class="modal-overlay"
+        onclick="if(event.target===this)closeModal('modal-import-users')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="import_user_csv">📥 Import User via CSV</div>
+                <button class="modal-close" onclick="closeModal('modal-import-users')">✕</button>
+            </div>
+            <form id="import-users-form" onsubmit="importUsersCSV(event)">
+                <div class="form-group">
+                    <label class="form-label">Data User (CSV)</label>
+                    <textarea id="import-users-csv" class="form-textarea" style="min-height:140px"
+                        placeholder="Format: username, email, password, role, kelas, daerah&#10;&#10;Contoh:&#10;budi, budi@contoh.com, rahasia123, user, 10-A, Surabaya&#10;siti, siti@contoh.com, sandiku1, user, 10-B, Jakarta"></textarea>
+                    <div style="font-size:.75rem;color:var(--text-2);margin-top:.35rem">
+                        Pisahkan kolom dengan koma (,). Kosongkan kelas/daerah jika tidak perlu.
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-import-users')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="import_users">📥 Import Users</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Advanced Mass Edit -->
+    <div id="modal-mass-edit" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-mass-edit')">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="mass_edit_user">📝 Edit Massal User</div>
+                <button class="modal-close" onclick="closeModal('modal-mass-edit')">✕</button>
+            </div>
+
+            <!-- Step 1: Upload -->
+            <div id="mass-edit-step-1">
+                <div style="margin-bottom: 1.5rem; line-height: 1.6;">
+                    <p>Ikuti langkah berikut untuk mengedit data user secara massal:</p>
+                    <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Unduh template berisi data user saat ini.</li>
+                        <li>Edit data menggunakan Excel atau aplikasi pengolah angka lainnya.</li>
+                        <li>Simpan sebagai file CSV.</li>
+                        <li>Unggah kembali file tersebut untuk ditinjau perubahannya.</li>
+                    </ol>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="card"
+                        style="padding: 1rem; border: 1px dashed var(--border); background: rgba(99, 102, 241, 0.05);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;" data-i18n="download_data">1. Unduh Data
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-2); margin-bottom: 1rem;"
+                            data-i18n="download_data_desc">Dapatkan data user
+                            aktif dalam format CSV.</p>
+                        <button class="btn btn-block" onclick="exportUsersCSV()" data-i18n="download_template">📥 Unduh
+                            Template</button>
+                    </div>
+                    <div class="card"
+                        style="padding: 1rem; border: 1px dashed var(--border); background: rgba(16, 185, 129, 0.05);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;" data-i18n="upload_changes">2. Unggah
+                            Perubahan</div>
+                        <p style="font-size: 0.8rem; color: var(--text-2); margin-bottom: 1rem;"
+                            data-i18n="upload_changes_desc">Pilih file CSV yang
+                            sudah Anda modifikasi.</p>
+                        <input type="file" id="mass-edit-file" style="display: none;"
+                            onchange="handleMassEditUpload(event)" accept=".csv">
+                        <button class="btn btn-primary btn-block"
+                            onclick="document.getElementById('mass-edit-file').click()" data-i18n="upload_csv">📤 Unggah
+                            File CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Review -->
+            <div id="mass-edit-step-2" style="display: none;">
+                <div style="font-weight: 600; margin-bottom: 1rem;">Tinjau Perubahan</div>
+                <div
+                    style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1.5rem;">
+                    <table class="table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Kolom</th>
+                                <th>Lama</th>
+                                <th>Baru</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mass-edit-diff-body">
+                            <!-- Diffs will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="mass-edit-no-changes"
+                    style="display: none; text-align: center; padding: 2rem; color: var(--text-2);">
+                    Tidak ada perubahan terdeteksi antara file yang diunggah dengan data di server.
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="resetMassEdit()" data-i18n="back">Kembali</button>
+                    <button id="btn-apply-mass-edit" class="btn btn-primary" onclick="applyMassEdit()"
+                        data-i18n="apply_changes">💾 Terapkan
+                        Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: User Detail -->
+    <div id="modal-user-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-user-detail')">
+        <div class="modal" style="max-width:600px">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="user_detail">Detail User</div>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn btn-sm" id="btn-export-user-pdf"
+                        style="background:var(--primary); color:white; border:none;" data-i18n="export_pdf">📄 Export
+                        PDF</button>
+                    <button class="modal-close" onclick="closeModal('modal-user-detail')">✕</button>
+                </div>
+            </div>
+            <div id="detail-content" style="padding:1.5rem"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit User -->
+    <div id="modal-user" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-user')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="user-modal-title">Tambah User</div>
+                <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+            </div>
+            <form id="user-form" onsubmit="saveUser(event)">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input id="u-username" class="form-input" required placeholder="Masukkan username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input id="u-email" type="email" class="form-input" required placeholder="email@contoh.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select id="u-role" class="form-select">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kelas</label>
+                    <input id="u-kelas" class="form-input" placeholder="Masukkan kelas (ex: 10-A)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Daerah</label>
+                    <input id="u-daerah" class="form-input" placeholder="Masukkan daerah (ex: Surabaya)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="u-status" class="form-select">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div id="user-pw-row" class="form-group">
+                    <label class="form-label">Password <span style="color:var(--text-2);font-weight:400">(kosongkan
+                            untuk tidak mengubah)</span></label>
+                    <input id="u-password" type="password" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-user')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">💾 Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Word -->
+    <div id="modal-word" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-word')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="word-modal-title">Tambah Kata</div>
+                <button class="modal-close" onclick="closeModal('modal-word')">✕</button>
+            </div>
+            <form id="word-form" onsubmit="saveWord(event)">
+                <input type="hidden" id="edit-word-id">
+                <div class="form-group">
+                    <label class="form-label">Bahasa</label>
+                    <select id="w-language" class="form-select">
+                        <option value="id">🇮🇩 Indonesian</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="ar">🇸🇦 Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kata</label>
+                    <input id="w-word" class="form-input" required placeholder="Masukkan kata">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-word')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">💾 Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Import Words CSV -->
+    <div id="modal-import" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-import')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="import_word_csv">📥 Import Kata via CSV</div>
+                <button class="modal-close" onclick="closeModal('modal-import')">✕</button>
+            </div>
+            <form id="import-form" onsubmit="importWords(event)">
+                <div class="form-group">
+                    <label class="form-label">Bahasa</label>
+                    <select id="import-lang" class="form-select">
+                        <option value="id">🇮🇩 Indonesian</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="ar">🇸🇦 Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Daftar Kata</label>
+                    <textarea id="import-csv" class="form-textarea" style="min-height:140px"
+                        placeholder="Satu kata per baris, atau pisahkan dengan koma:&#10;makan&#10;minum&#10;tidur, berjalan, berlari"></textarea>
+                    <div style="font-size:.75rem;color:var(--text-2);margin-top:.35rem">Mendukung: newline atau koma
+                        sebagai pemisah</div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-import')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="import">📥 Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Delete Confirmation -->
+    <div id="modal-confirm-delete" class="modal-overlay">
+        <div class="modal" style="max-width:420px;text-align:center">
+            <div class="modal-header" style="justify-content:center;border-bottom:none;padding-bottom:0">
+                <div style="font-size:2.5rem;line-height:1">⚠️</div>
+            </div>
+            <div style="padding:0 1.5rem 1rem">
+                <div class="modal-title" style="margin-bottom:.5rem">Konfirmasi Hapus</div>
+                <p id="confirm-delete-msg" style="color:var(--text-2);font-size:.9rem;margin:0"></p>
+            </div>
+            <div class="form-actions" style="justify-content:center;gap:.75rem;padding:0 1.5rem 1.5rem">
+                <button class="btn" onclick="closeModal('modal-confirm-delete')" data-i18n="cancel">Batal</button>
+                <button id="confirm-delete-btn" class="btn btn-danger" data-i18n="delete">🗑 Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Competition -->
+    <div id="modal-comp" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-comp')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="comp-modal-title">Buat Kompetisi</div>
+                <button class="modal-close" onclick="closeModal('modal-comp')">✕</button>
+            </div>
+            <form id="comp-form" onsubmit="saveComp(event)">
+                <input type="hidden" id="edit-comp-id">
+                <div class="form-group">
+                    <label class="form-label">Judul</label>
+                    <input id="comp-title" class="form-input" required placeholder="Nama kompetisi">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi</label>
+                    <textarea id="comp-desc" class="form-textarea"
+                        placeholder="Deskripsi singkat kompetisi…"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Bahasa</label>
+                        <select id="comp-lang" class="form-select">
+                            <option value="id">🇮🇩 Indonesian</option>
+                            <option value="en">🇺🇸 English</option>
+                            <option value="ar">🇸🇦 Arabic</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Mulai</label>
+                        <input id="comp-start" type="datetime-local" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Selesai</label>
+                        <input id="comp-end" type="datetime-local" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-comp')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">💾 Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Practice Text -->
+    <div id="modal-practice" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-practice')">
+        <div class="modal" style="max-width:650px">
+            <div class="modal-header">
+                <div class="modal-title" id="practice-modal-title">Tambah Teks Latihan</div>
+                <button class="modal-close" onclick="closeModal('modal-practice')">✕</button>
+            </div>
+            <form id="practice-form" onsubmit="savePracticeText(event)">
+                <input type="hidden" id="pt-id">
+                <div class="form-group">
+                    <label class="form-label">Judul Teks</label>
+                    <input id="pt-title" class="form-input" required placeholder="Masukkan judul teks">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi (Opsional)</label>
+                    <textarea id="pt-description" class="form-input" rows="2"
+                        placeholder="Masukkan deskripsi singkat..."></textarea>
+                </div>
+                <div class="form-row" style="display:flex;gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Bahasa</label>
+                        <select id="pt-language" class="form-select">
+                            <option value="id">🇮🇩 Indonesian</option>
+                            <option value="en">🇺🇸 English</option>
+                            <option value="ar">🇸🇦 Arabic</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Difficulty</label>
+                        <select id="pt-difficulty" class="form-select">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Konten Teks</label>
+                    <textarea id="pt-content" class="form-input" rows="8" required
+                        placeholder="Masukkan isi paragraf..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="pt-active" class="form-select">
+                        <option value="1">Aktif</option>
+                        <option value="0">Non-aktif</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-practice')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">💾 Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Achievement -->
+    <div id="modal-achievement" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-achievement')">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="achievement-modal-title">Tambah Achievement</div>
+                <button class="modal-close" onclick="closeModal('modal-achievement')">✕</button>
+            </div>
+            <form id="achievement-form" onsubmit="saveAchievement(event)">
+                <input type="hidden" id="ach-id">
+                <div class="form-row" style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Judul</label>
+                        <input id="ach-title" class="form-input" required placeholder="Contoh: 100+ WPM">
+                    </div>
+                    <div class="form-group" style="width:80px;">
+                        <label class="form-label">Icon</label>
+                        <input id="ach-badge" class="form-input" style="text-align:center;" placeholder="🏆">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi</label>
+                    <textarea id="ach-desc" class="form-input" rows="2"
+                        placeholder="Deskripsi pencapaian..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori</label>
+                    <select id="ach-category" class="form-select">
+                        <option value="typing_speed">Typing Speed</option>
+                        <option value="typing_activity">Typing Activity</option>
+                        <option value="practice_training">Practice Training</option>
+                        <option value="competition">Competition</option>
+                        <option value="accuracy">Accuracy</option>
+                        <option value="finger_training">Finger Training</option>
+                        <option value="special">Special</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Persyaratan (JSON)</label>
+                    <textarea id="ach-reqs" class="form-input td-mono" rows="4" required
+                        placeholder='{"type": "wpm", "min": 100}'></textarea>
+                    <div style="font-size:.7rem; color:var(--text-2); margin-top:.3rem;">
+                        Contoh: {"type": "wpm", "min": 100} atau {"type": "test_count", "min": 50}
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('modal-achievement')"
+                        data-i18n="cancel">Batal</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">💾 Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Selective Reset Data (Premium UI) -->
+    <div id="modal-reset-data" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-reset-data')">
+        <div class="modal"
+            style="max-width: 550px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 0; border: none; overflow-y: auto;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 24px; border-bottom: none; margin-bottom: 0; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div
+                        style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 12px; font-size: 24px;">
+                        🗑️</div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;" data-i18n="reset_system_data">Reset
+                            Data Sistem</h2>
+                        <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;" data-i18n="reset_system_data_desc">
+                            Pilih data yang ingin Anda hapus secara permanen.</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal('modal-reset-data')"
+                    style="color: white; opacity: 0.8; border-color: rgba(255,255,255,0.3);">✕</button>
+            </div>
+
+            <div class="modal-body"
+                style="padding: 24px; background: #f8fafc; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px;">
+                    <span style="font-weight: 700; color: #1e293b; font-size: 0.95rem;"
+                        data-i18n="data_category">Kategori Data</span>
+                    <button type="button" onclick="toggleSelectAllReset(this)" class="btn-text"
+                        style="color: #6366f1; font-weight: 600; font-size: 0.85rem; border: none; background: none; cursor: pointer;"
+                        data-i18n="select_all">Pilih Semua</button>
+                </div>
+
+                <div style="display: grid; gap: 12px;">
+                    <!-- User Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="users" onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">👥</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title">Semua User (Kecuali Admin)</div>
+                                <div class="reset-desc">Menghapus akun non-admin, hasil, & leaderboard terkait.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Results Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="results" onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">📊</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title">Hasil Tes & Leaderboard</div>
+                                <div class="reset-desc">Menghapus riwayat mengetik & ranking global.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Competitions Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="competitions" onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">🏆</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title">Semua Kompetisi</div>
+                                <div class="reset-desc">Menghapus data kompetisi & hasil juara.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Practice Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="practice" onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">📝</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title">Teks Latihan</div>
+                                <div class="reset-desc">Menghapus semua database teks latihan.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Word Lists Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="words" onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">🔤</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title">Daftar Kata (Word Lists)</div>
+                                <div class="reset-desc">Menghapus semua perbendaharaan kata sistem.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Finger Training Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="finger_training"
+                            onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">🖐️</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title" data-i18n="reset_finger">Riwayat Finger Training</div>
+                                <div class="reset-desc" data-i18n="reset_finger_desc">Menghapus semua riwayat latihan
+                                    memori otot jari.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- User Achievements Item -->
+                    <label class="reset-option-card">
+                        <input type="checkbox" name="reset-target" value="user_achievements"
+                            onchange="updateResetSummary()">
+                        <div class="reset-option-content">
+                            <div class="reset-option-icon">🏆</div>
+                            <div class="reset-option-text">
+                                <div class="reset-title" data-i18n="reset_achievements">Capaian User (Achievements)
+                                </div>
+                                <div class="reset-desc" data-i18n="reset_achievements_desc">Menghapus semua
+                                    capaian/penghargaan yang telah dibuka oleh semua user.</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="reset-summary-box"
+                    style="margin-top: 20px; padding: 15px; border-radius: 12px; background: #fff1f2; border: 1px dashed #fda4af; display: none;">
+                    <div
+                        style="color: #be123c; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️</span> <span id="reset-summary-text">Anda akan menghapus data terpilih.</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions"
+                    style="margin-top: 30px; display: flex; gap: 12px; padding: 0; justify-content: stretch; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reset-data')"
+                        style="flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; margin: 0;"
+                        data-i18n="cancel">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="executeReset()" id="btn-execute-reset"
+                        disabled
+                        style="flex: 2; padding: 12px; border-radius: 10px; font-weight: 600; background: #ef4444; opacity: 0.5; cursor: not-allowed; margin: 0;"
+                        data-i18n="confirm_deletion">Konfirmasi Penghapusan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .reset-option-card {
+            display: block;
+            position: relative;
+            cursor: pointer;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .reset-option-card:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .reset-option-card input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .reset-option-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+        }
+
+        .reset-option-icon {
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .reset-option-text {
+            flex: 1;
+        }
+
+        .reset-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        .reset-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .reset-option-card input:checked+.reset-option-content {
+            background: #f0f9ff;
+        }
+
+        .reset-option-card input:checked+.reset-option-content .reset-option-icon {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .reset-option-card.selected {
+            border-color: #0ea5e9;
+            background: #f0f9ff;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="js/vendor/chart.umd.min.js"></script>
+    <script src="js/vendor/jspdf.umd.min.js"></script>
+    <script src="js/vendor/jspdf.plugin.autotable.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js?v=8"></script>
+</body>
+
+</html>

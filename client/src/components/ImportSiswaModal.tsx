@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { parseXlsx, rowsToSiswa, type SiswaRow } from '../utils/excelParser';
+import { API_BASE_URL } from '../utils/api';
 
 interface Props {
   onClose: () => void;
@@ -34,7 +35,7 @@ export default function ImportSiswaModal({ onClose, onImported }: Props) {
   const handleConfirm = async () => {
     setIsImporting(true); setError('');
     try {
-      const res = await fetch('http://localhost:5000/admin/siswa/import', {
+      const res = await fetch(`${API_BASE_URL}/admin/siswa/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

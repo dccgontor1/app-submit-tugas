@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../utils/api';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -13,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSesi = async () => {
       try {
-        const res = await fetch('http://localhost:5000/sesi-status', { credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/sesi-status`, { credentials: 'include' });
         const data = await res.json();
         if (res.ok && data.redirectTo) {
           navigate(data.redirectTo, { replace: true });
@@ -30,7 +31,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/login-staff', {
+      const res = await fetch(`${API_BASE_URL}/login-staff`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

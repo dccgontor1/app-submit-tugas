@@ -53,6 +53,7 @@ model Tugas {
   
   nilai       Float?      // nullable, diisi guru nanti
   catatan     String?     // komentar/feedback dari guru
+  pemeriksa   String?     // Nama guru yang menilai
   dinilaiAt   DateTime?   // kapan dinilai
   status      StatusTugas @default(MENUNGGU)
 
@@ -70,6 +71,7 @@ model Ujian {
   deskripsi   String?
   formatFile  String[]      // ["pdf", "docx", "jpg", "png"]
   durasi      Int           // dalam menit
+  kriteria    Json?         // Array of { label: string, skor: number }
   createdAt   DateTime      @default(now())
   deletedAt   DateTime?
 
@@ -85,6 +87,7 @@ model SesiAktif {
   stambuk     String?
   deadline    DateTime
   startedAt   DateTime?
+  loggedInAt  DateTime?
 
   ujianId     String
   ujian       Ujian     @relation(fields: [ujianId], references: [id])

@@ -8,6 +8,7 @@ import StudentLoginPage from './pages/SantriLoginPage';
 import UjianAdminPage from './pages/UjianAdminPage';
 import UjianSiswaPage from './pages/UjianSiswaPage';
 import PenilaianPage from './pages/PenilaianPage';
+import MafatypePage from './pages/MafatypePage';
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
               <PenilaianPage />
             </ProtectedRoute>
           } />
+        <Route path="/typing" element={<MafatypePage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

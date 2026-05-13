@@ -1,0 +1,58 @@
+ID: 1 | Title: 10+ WPM | Category: typing_speed | Req: {"min": 10, "type": "wpm"}
+ID: 2 | Title: 25+ WPM | Category: typing_speed | Req: {"min": 25, "type": "wpm"}
+ID: 3 | Title: 50+ WPM | Category: typing_speed | Req: {"min": 50, "type": "wpm"}
+ID: 4 | Title: 60+ WPM | Category: typing_speed | Req: {"min": 60, "type": "wpm"}
+ID: 5 | Title: 75+ WPM | Category: typing_speed | Req: {"min": 75, "type": "wpm"}
+ID: 6 | Title: 100+ WPM | Category: typing_speed | Req: {"min": 100, "type": "wpm"}
+ID: 7 | Title: 125+ WPM | Category: typing_speed | Req: {"min": 125, "type": "wpm"}
+ID: 8 | Title: 150+ WPM | Category: typing_speed | Req: {"min": 150, "type": "wpm"}
+ID: 9 | Title: 200+ WPM | Category: typing_speed | Req: {"min": 200, "type": "wpm"}
+ID: 10 | Title: 10 Tests Completed | Category: typing_activity | Req: {"min": 10, "type": "test_count", "min_wpm": 20}
+ID: 11 | Title: 25 Tests Completed | Category: typing_activity | Req: {"min": 25, "type": "test_count", "min_wpm": 20}
+ID: 12 | Title: 50 Tests Completed | Category: typing_activity | Req: {"min": 50, "type": "test_count", "min_wpm": 20}
+ID: 13 | Title: 100 Tests Completed | Category: typing_activity | Req: {"min": 100, "type": "test_count", "min_wpm": 20}
+ID: 14 | Title: 500 Tests Completed | Category: typing_activity | Req: {"min": 500, "type": "test_count", "min_wpm": 20}
+ID: 15 | Title: 1000 Tests Completed | Category: typing_activity | Req: {"min": 1000, "type": "test_count", "min_wpm": 20}
+ID: 16 | Title: Flawless 3 | Category: typing_activity | Req: {"min": 3, "type": "flawless_streak", "min_wpm": 60}
+ID: 17 | Title: Flawless 5 | Category: typing_activity | Req: {"min": 5, "type": "flawless_streak", "min_wpm": 60}
+ID: 18 | Title: Flawless 10 | Category: typing_activity | Req: {"min": 10, "type": "flawless_streak", "min_wpm": 60}
+ID: 19 | Title: Beginner Trainer | Category: practice_training | Req: {"min": 5, "type": "practice_count"}
+ID: 20 | Title: Dedicated Learner | Category: practice_training | Req: {"min": 25, "type": "practice_count"}
+ID: 21 | Title: Practice Master | Category: practice_training | Req: {"min": 50, "type": "practice_count"}
+ID: 22 | Title: Typing Specialist | Category: practice_training | Req: {"min": 75, "type": "practice_count"}
+ID: 23 | Title: Typing Expert | Category: practice_training | Req: {"min": 100, "type": "practice_count"}
+ID: 24 | Title: Finger Beginner | Category: finger_training | Req: {"min": 1, "type": "finger_each_count"}
+ID: 25 | Title: Finger Apprentice | Category: finger_training | Req: {"min": 3, "type": "finger_each_count"}
+ID: 26 | Title: Finger Skilled | Category: finger_training | Req: {"min": 5, "type": "finger_each_count"}
+ID: 27 | Title: Finger Expert | Category: finger_training | Req: {"min": 10, "type": "finger_each_count"}
+ID: 28 | Title: Finger Specialist | Category: finger_training | Req: {"min": 15, "type": "finger_each_count"}
+ID: 29 | Title: Finger Master | Category: finger_training | Req: {"min": 25, "type": "finger_each_count"}
+ID: 30 | Title: Accuracy 95% | Category: accuracy | Req: {"min": 95, "type": "accuracy"}
+ID: 32 | Title: 10 Competitions Played | Category: competition | Req: {"min": 10, "type": "comp_count"}
+ID: 33 | Title: 25 Competitions Played | Category: competition | Req: {"min": 25, "type": "comp_count"}
+ID: 34 | Title: 50 Competitions Played | Category: competition | Req: {"min": 50, "type": "comp_count"}
+ID: 69 | Title: Competition Winner (3) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 1, "min_participants": 3}
+ID: 70 | Title: Competition Pro (5) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 1, "min_participants": 5}
+ID: 71 | Title: Competition Champion (10) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 1, "min_participants": 10}
+ID: 72 | Title: Competition Elite (25) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 1, "min_participants": 25}
+ID: 73 | Title: Competition Legend (50) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 1, "min_participants": 50}
+ID: 74 | Title: Triple Winner (3) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 3, "min_participants": 3}
+ID: 75 | Title: Triple Pro (5) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 3, "min_participants": 5}
+ID: 76 | Title: Triple Champion (10) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 3, "min_participants": 10}
+ID: 77 | Title: Triple Elite (25) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 3, "min_participants": 25}
+ID: 78 | Title: Triple Legend (50) | Category: competition | Req: {"type": "comp_rank_one", "min_count": 3, "min_participants": 50}
+ID: 79 | Title: Persistence (3) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 3, "min_comp_count": 1}
+ID: 80 | Title: Persistence (10) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 10, "min_comp_count": 1}
+ID: 81 | Title: Persistence (15) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 15, "min_comp_count": 1}
+ID: 82 | Title: Persistence (25) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 25, "min_comp_count": 1}
+ID: 83 | Title: Persistence (50) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 50, "min_comp_count": 1}
+ID: 84 | Title: Triple Persistence (3) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 3, "min_comp_count": 3}
+ID: 85 | Title: Triple Persistence (10) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 10, "min_comp_count": 3}
+ID: 86 | Title: Triple Persistence (15) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 15, "min_comp_count": 3}
+ID: 87 | Title: Triple Persistence (25) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 25, "min_comp_count": 3}
+ID: 88 | Title: Triple Persistence (50) | Category: competition | Req: {"type": "comp_repeat_count", "min_repeats": 50, "min_comp_count": 3}
+ID: 89 | Title: Accuracy Apprentice | Category: accuracy | Req: {"min": 5, "type": "accuracy_count", "min_accuracy": 98}
+ID: 90 | Title: Accuracy Practitioner | Category: accuracy | Req: {"min": 10, "type": "accuracy_count", "min_accuracy": 98}
+ID: 91 | Title: Accuracy Master | Category: accuracy | Req: {"min": 15, "type": "accuracy_count", "min_accuracy": 98}
+ID: 92 | Title: Accuracy Grandmaster | Category: accuracy | Req: {"min": 25, "type": "accuracy_count", "min_accuracy": 98}
+ID: 93 | Title: Legendary Typist | Category: accuracy | Req: {"min": 50, "type": "accuracy_count", "min_accuracy": 98}

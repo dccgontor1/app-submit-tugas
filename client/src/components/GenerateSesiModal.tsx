@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../utils/api';
 import type { Ujian } from '../types';
 
 interface Props {
@@ -30,7 +31,7 @@ export default function GenerateSesiModal({ onClose, onGenerated }: Props) {
 
   useEffect(() => {
     // Fetch Ujian
-    fetch('http://localhost:5000/admin/ujian', { credentials: 'include' })
+    fetch(`${API_BASE_URL}/admin/ujian`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then((data: Ujian[]) => {
         setUjianList(data);
@@ -39,7 +40,7 @@ export default function GenerateSesiModal({ onClose, onGenerated }: Props) {
       .catch(() => {});
 
     // Fetch Kelas Unik dari Siswa
-    fetch('http://localhost:5000/admin/siswa/kelas', { credentials: 'include' })
+    fetch(`${API_BASE_URL}/admin/siswa/kelas`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then((data: string[]) => setKelasList(data))
       .catch(() => {});
@@ -62,7 +63,7 @@ export default function GenerateSesiModal({ onClose, onGenerated }: Props) {
     setError('');
 
     try {
-      const res = await fetch(`http://localhost:5000/admin/ujian/${selectedUjian}/generate-sesi-kelas`, {
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian}/generate-sesi-kelas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
