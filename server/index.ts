@@ -144,9 +144,27 @@ const pastikanSiswa = async (request: FastifyRequest, reply: FastifyReply) => {
   }
 };
 
+// GET /available-exams — siswa
+app.get('/available-exams', async (req, res) => {
+  try {
+    const ujianList = await prisma.ujian.findMany({
+      where: { deletedAt: null },
+      select: { id: true, judul: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    return ujianList;
+  } catch (error) {
+    return res.status(500).send({ message: 'Gagal mengambil daftar ujian' });
+  }
+});
+
 // POST /login — siswa
 app.post('/login', async (req, res) => {
-  const { code } = req.body as { code: string };
+  const { stambuk, ujianId } = req.body as { stambuk: string; ujianId: string };
+
+  if (!stambuk || !ujianId) {
+    return res.status(400).send({ message: 'Stambuk dan Ujian wajib diisi' });
+  }
 
   try {
     const cookieLama = req.cookies.session;
@@ -160,28 +178,42 @@ app.post('/login', async (req, res) => {
           alreadyLoggedIn: true
         });
       } catch (e) {
-
         res.clearCookie('session', { path: '/' });
       }
     }
 
-    const sesi = await prisma.sesiAktif.findUnique({
-      where: { token: code },
-      include: { ujian: true },
-    });
+    // 1. Cek Siswa
+    const siswa = await prisma.siswa.findUnique({ where: { stambuk } });
+    if (!siswa) return res.status(404).send({ message: 'Stambuk tidak terdaftar!' });
 
-    if (!sesi) return res.status(401).send({ message: 'Kode invalid atau kedaluwarsa!' });
+    // 2. Cek Ujian
+    const ujian = await prisma.ujian.findUnique({ where: { id: ujianId } });
+    if (!ujian) return res.status(404).send({ message: 'Ujian tidak ditemukan!' });
+
+    // 3. Cek Sesi (atau buat baru)
+    let sesi = await prisma.sesiAktif.findUnique({
+      where: { ujianId_stambuk: { ujianId, stambuk: siswa.stambuk } },
+      include: { ujian: true }
+    });
 
     const now = new Date();
+
+    if (!sesi) {
+      return res.status(403).send({ message: 'Akses Ditolak! Sesi Anda belum diaktifkan oleh Admin.' });
+    }
+
+    // Jika sudah ada, cek deadline
     if (now > sesi.deadline) return res.status(403).send({ message: 'Sesi ujian ini sudah berakhir!' });
 
-    // ✅ Mark as logged in (attendance)
+    // Update login time tanpa auto start
     await prisma.sesiAktif.update({
-      where: { token: code },
-      data: { loggedInAt: now } as any
+      where: { token: sesi.token },
+      data: { 
+        loggedInAt: now
+      } as any
     });
 
-    const token = app.jwt.sign({
+    const tokenJWT = app.jwt.sign({
       nama: sesi.nama,
       noAbsen: sesi.noAbsen,
       kelas: sesi.kelas,
@@ -190,7 +222,7 @@ app.post('/login', async (req, res) => {
       judulUjian: sesi.ujian?.judul ?? 'unknown',
     });
 
-    res.setCookie('session', token, {
+    res.setCookie('session', tokenJWT, {
       httpOnly: true,
       sameSite: 'lax',
       secure: false,
@@ -210,7 +242,6 @@ app.post('/login', async (req, res) => {
     req.log.error(error);
     return res.status(500).send({ message: 'Terjadi kesalahan server' });
   }
-
 });
 
 // POST /login-staff — admin/guru
@@ -272,6 +303,36 @@ app.post('/login-staff', async (req, res) => {
 app.post('/logout', async (req, res) => {
   res.clearCookie('session', { path: '/' });
   return { success: true };
+});
+
+app.post('/mulai-ujian', { preHandler: [pastikanSiswa] }, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const stambuk = user.stambuk;
+    const ujianId = user.ujianId;
+
+    let sesi;
+    if (stambuk) {
+      sesi = await prisma.sesiAktif.findUnique({
+        where: { ujianId_stambuk: { ujianId, stambuk } },
+        include: { ujian: true }
+      });
+    }
+
+    if (!sesi) return res.status(404).send({ message: 'Sesi tidak ditemukan' });
+    if (sesi.startedAt) return res.status(400).send({ message: 'Ujian sudah dimulai' });
+
+    const now = new Date();
+    await prisma.sesiAktif.update({
+      where: { token: sesi.token },
+      data: { startedAt: now }
+    });
+
+    return { success: true };
+  } catch (error) {
+    req.log.error(error);
+    return res.status(500).send({ message: 'Gagal memulai ujian' });
+  }
 });
 
 app.post('/admin/generate', { preHandler: [pastikanAdmin] }, async (req, res) => {
@@ -866,9 +927,8 @@ app.get('/admin/ujian/:id/monitor', { preHandler: [pastikanAdmin] }, async (req,
 });
 
 app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) => {
-  const data = await req.file();
-  if (!data) return res.status(400).send({ message: 'File tidak ditemukan' });
-
+  const parts = req.files();
+  const filePaths: string[] = [];
   const { nama, kelas, noAbsen, stambuk, ujianId, judulUjian } = req.user as any;
 
   // ✅ Cek deadline sebelum terima file
@@ -879,31 +939,36 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
 
   const now = new Date();
   if (now > sesiCek.deadline) {
-    // Drain stream agar tidak hang
-    data.file.resume();
     return res.status(403).send({ message: 'Waktu ujian sudah habis, tidak bisa mengumpulkan jawaban' });
   }
 
   // ✅ Ambil ujian untuk validasi format file
   const ujian = await prisma.ujian.findUnique({ where: { id: ujianId } });
-  const ext = path.extname(data.filename).toLowerCase().replace('.', '');
   const allowedFormats = ujian?.formatFile ?? ['pdf', 'docx', 'doc', 'pptx', 'ppt','jpg', 'jpeg', 'png'];
-  if (!allowedFormats.includes(ext)) {
-    data.file.resume();
-    return res.status(400).send({ message: `Format .${ext} tidak diizinkan. Format yang diterima: ${allowedFormats.join(', ')}` });
-  }
 
   const folderName = judulUjian.replace(/[^a-zA-Z0-9_\-]/g, '_');
   const folder = path.join(__dirname, '..', 'uploads', folderName, kelas);
   fs.mkdirSync(folder, { recursive: true });
 
-  const filename = `${stambuk || noAbsen}_${nama.replace(/\s+/g, '_')}.${ext}`;
-  const filepath = path.join(folder, filename);
+  let fileIndex = 0;
+  for await (const data of parts) {
+    const ext = path.extname(data.filename).toLowerCase().replace('.', '');
+    if (!allowedFormats.includes(ext)) {
+      continue;
+    }
 
-  await pipeline(data.file, fs.createWriteStream(filepath));
+    // Nama file unik per lampiran
+    const filename = `${stambuk || noAbsen}_${nama.replace(/\s+/g, '_')}_${fileIndex}.${ext}`;
+    const filepath = path.join(folder, filename);
 
-  // ✅ Simpan path relatif (bukan absolut) agar portable
-  const relativePath = path.join(folderName, kelas, filename);
+    await pipeline(data.file, fs.createWriteStream(filepath));
+    filePaths.push(path.join(folderName, kelas, filename));
+    fileIndex++;
+  }
+
+  if (filePaths.length === 0) {
+    return res.status(400).send({ message: 'Tidak ada file valid yang diunggah' });
+  }
 
   // ✅ Upsert: jika sudah pernah submit, update file-nya (bukan duplikasi)
   const existingTugas = await prisma.tugas.findFirst({
@@ -911,14 +976,22 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
   });
 
   if (existingTugas) {
-    // Hapus file lama jika berbeda
-    if (existingTugas.filePath !== relativePath) {
-      const oldAbsPath = path.join(__dirname, '..', 'uploads', existingTugas.filePath);
+    // Hapus file lama
+    for (const oldPath of existingTugas.filePaths) {
+      const oldAbsPath = path.join(__dirname, '..', 'uploads', oldPath);
       if (fs.existsSync(oldAbsPath)) fs.unlinkSync(oldAbsPath);
     }
     await prisma.tugas.update({
       where: { id: existingTugas.id },
-      data: { filePath: relativePath, submittedAt: new Date(), status: 'MENUNGGU', nilai: null, catatan: null, dinilaiAt: null, stambuk: stambuk || existingTugas.stambuk },
+      data: { 
+        filePaths, 
+        submittedAt: new Date(), 
+        status: 'MENUNGGU', 
+        nilai: null, 
+        catatan: null, 
+        dinilaiAt: null, 
+        stambuk: stambuk || existingTugas.stambuk 
+      },
     });
   } else {
     await prisma.tugas.create({
@@ -928,7 +1001,7 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
         noAbsen,
         stambuk,
         ujianId,
-        filePath: relativePath,
+        filePaths,
         token: crypto.randomBytes(6).toString('hex').toUpperCase(),
       }
     });
@@ -938,7 +1011,7 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
     where: stambuk ? { ujianId, stambuk } : { ujianId, noAbsen, kelas },
   });
 
-  return { success: true, filename };
+  return { success: true, count: filePaths.length };
 });
 
 app.get('/sesi-status', async (request, reply) => {

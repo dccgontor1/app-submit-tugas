@@ -2,13 +2,11 @@ import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import ImportSiswaModal from '../components/ImportSiswaModal';
-import GenerateSesiModal from '../components/GenerateSesiModal';
 import { API_BASE_URL } from '../utils/api';
 import type { Akun, Sesi, Siswa, Tugas, RiwayatUjian } from '../types';
 import {
   X,
   FileUp,
-  Settings,
   Users,
   LogOut
 } from 'lucide-react';
@@ -31,7 +29,6 @@ export default function DashboardPage() {
 
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
   const [isLoadingSiswa, setIsLoadingSiswa] = useState(false);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
 
   const [editingSesi, setEditingSesi] = useState<Sesi | null>(null);
   const [editSesiForm, setEditSesiForm] = useState({ token: '', nama: '', kelas: '', noAbsen: '', deadline: '' });
@@ -401,8 +398,8 @@ export default function DashboardPage() {
           ].map(({ key, label }) => (
             <button key={key} onClick={() => setActiveTab(key as any)}
               className={`text-xs tracking-wide font-medium px-6 py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === key
-                  ? 'text-white bg-blue-500/20 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                  : 'text-white/40 border border-transparent hover:text-white/80 hover:bg-white/5'
+                ? 'text-white bg-blue-500/20 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                : 'text-white/40 border border-transparent hover:text-white/80 hover:bg-white/5'
                 }`}>{label}</button>
           ))}
         </div>
@@ -487,11 +484,6 @@ export default function DashboardPage() {
                   className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs px-4 py-2.5 rounded-xl transition-all font-medium flex items-center gap-2 shadow-sm">
                   <FileUp className="w-4 h-4 text-emerald-400" />
                   Import Excel
-                </button>
-                <button onClick={() => setShowGenerateModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs px-4 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] font-medium flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Generate Sesi Ujian
                 </button>
               </div>
             </div>
@@ -674,8 +666,8 @@ export default function DashboardPage() {
                               <td className="px-4 py-3 text-xs text-white/40">{new Date(t.submittedAt).toLocaleString('id-ID')}</td>
                               <td className="px-4 py-3">
                                 <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded-lg border ${t.status === 'DINILAI' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' :
-                                    t.status === 'DIKEMBALIKAN' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' :
-                                      'bg-white/5 text-white/30 border-white/10'
+                                  t.status === 'DIKEMBALIKAN' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' :
+                                    'bg-white/5 text-white/30 border-white/10'
                                   }`}>{t.status}</span>
                               </td>
                               <td className="px-4 py-3">
@@ -905,7 +897,7 @@ export default function DashboardPage() {
 
       { }
       {showImportModal && <ImportSiswaModal onClose={() => setShowImportModal(false)} onImported={() => { fetchSiswa(); }} />}
-      {showGenerateModal && <GenerateSesiModal onClose={() => setShowGenerateModal(false)} onGenerated={() => { fetchSesi(); }} />}
+
     </div>
   );
 }

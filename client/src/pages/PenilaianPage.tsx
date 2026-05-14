@@ -13,7 +13,8 @@ import {
   FileText,
   Check,
   ClipboardCheck,
-  CheckCircle
+  CheckCircle,
+  Files
 } from 'lucide-react';
 
 const Icon = {
@@ -71,6 +72,7 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
   const ext  = fileExt(filePath);
   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
   const isPdf   = ext === 'pdf';
+  const isPpt   = ['ppt', 'pptx'].includes(ext);
 
   if (isImage) {
     return (
@@ -87,6 +89,16 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
       <iframe
         src={url}
         title="File tugas"
+        className="w-full border-0 rounded-sm"
+        style={{ height: 'calc(100vh - 56px - 1px)' }}
+      />
+    );
+  }
+  if (isPpt) {
+    return (
+      <iframe
+        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+        title="Preview PPT"
         className="w-full border-0 rounded-sm"
         style={{ height: 'calc(100vh - 56px - 1px)' }}
       />
@@ -119,6 +131,7 @@ export default function PenilaianPage() {
 
   const [viewerOpen,  setViewerOpen]   = useState(false);
   const [viewerIndex, setViewerIndex]  = useState(0);
+  const [viewerFileIndex, setViewerFileIndex] = useState(0);
 
   const [inputNilai,   setInputNilai]   = useState('');
   const [inputCatatan, setInputCatatan] = useState('');
@@ -223,6 +236,7 @@ export default function PenilaianPage() {
 
   const openViewer = (idx: number) => {
     setViewerIndex(idx);
+    setViewerFileIndex(0);
     const t = displayList[idx];
     setInputNilai(t.nilai !== null ? String(t.nilai) : '');
     setInputCatatan(t.catatan ?? '');
@@ -246,6 +260,7 @@ export default function PenilaianPage() {
     const next = viewerIndex + dir;
     if (next < 0 || next >= displayList.length) return;
     setViewerIndex(next);
+    setViewerFileIndex(0);
     const t = displayList[next];
     setInputNilai(t?.nilai?.toString() ?? '');
     setInputCatatan(t?.catatan ?? '');
@@ -273,13 +288,13 @@ export default function PenilaianPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ nilai, catatan: inputCatatan, pemeriksa: user?.nama }),
+        body: JSON.stringify({ nilai, catatan: inputCatatan, pemeriksa: user?.nama ?? null }),
       });
       if (!res.ok) throw new Error();
       setTugasList(prev =>
         prev.map(t =>
           t.id === currentTugas.id
-            ? { ...t, nilai, catatan: inputCatatan, pemeriksa: user?.nama, status: 'DINILAI', dinilaiAt: new Date().toISOString() }
+            ? { ...t, nilai, catatan: inputCatatan, pemeriksa: user?.nama ?? null, status: 'DINILAI', dinilaiAt: new Date().toISOString() }
             : t
         )
       );
@@ -592,7 +607,7 @@ export default function PenilaianPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                 {[['Nama Siswa', printTarget.nama], ['Kelas', printTarget.kelas], ['No. Absen', String(printTarget.noAbsen)],
                   ['Stambuk', printTarget.stambuk || '—'], ['Tanggal Kumpul', formatTanggal(printTarget.submittedAt)],
-                  ['Grade', grade], ['Status', printTarget.status], ['Format File', '.' + (printTarget.filePath?.split('.').pop()?.toUpperCase() ?? '—')]]
+                  ['Grade', grade], ['Status', printTarget.status], ['Jml File', String(printTarget.filePaths?.length || 0)]]
                   .map(([label, val]) => (
                     <div key={label} style={{ background: '#f8fafc', borderRadius: 10, padding: '12px 16px', border: '1px solid #e2e8f0' }}>
                       <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#64748b', fontWeight: 700, marginBottom: 4 }}>{label}</div>
@@ -646,7 +661,7 @@ export default function PenilaianPage() {
                   className="p-1 text-white/40 hover:text-white disabled:opacity-20 transition-all">{Icon.chevronRight}</button>
               </div>
               <div className="h-8 w-px bg-white/10" />
-              <a href={fileUrl(currentTugas.filePath)} download target="_blank" rel="noreferrer"
+              <a href={fileUrl(currentTugas.filePaths?.[viewerFileIndex] || '')} download target="_blank" rel="noreferrer"
                 className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-white/40 hover:text-white transition-colors">
                 {Icon.download} Download
               </a>
@@ -661,18 +676,46 @@ export default function PenilaianPage() {
           <div className="flex-1 flex overflow-hidden relative z-10">
             <div className="flex-1 overflow-auto flex items-start justify-center p-12 custom-scrollbar">
               <div className="glass-panel p-2 rounded-2xl border border-white/10 bg-white/5 shadow-2xl">
-                <FilePreview filePath={currentTugas.filePath} />
+                <FilePreview filePath={currentTugas.filePaths?.[viewerFileIndex] || ''} />
               </div>
             </div>
 
             {}
             <div className="w-[380px] shrink-0 border-l border-white/10 flex flex-col bg-black/40 backdrop-blur-md">
               <div className="p-8 space-y-8 flex-1 overflow-y-auto">
+                {/* File Selector if multiple */}
+                {(currentTugas.filePaths?.length || 0) > 1 && (
+                  <section>
+                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                      <Files className="w-3 h-3" /> Daftar File ({currentTugas.filePaths?.length})
+                    </p>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                      {currentTugas.filePaths?.map((path, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setViewerFileIndex(idx)}
+                          className={`w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center gap-3 ${
+                            viewerFileIndex === idx 
+                              ? 'bg-indigo-600/20 border-indigo-500/30 text-white' 
+                              : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${viewerFileIndex === idx ? 'bg-indigo-400' : 'bg-white/10'}`} />
+                          <div className="flex-1 truncate">
+                            <p className="text-xs font-medium truncate">{path.split(/[/\\]/).pop()}</p>
+                            <p className="text-[9px] uppercase tracking-wider opacity-50">{fileExt(path)}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 <section>
                   <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-4">Informasi Sesi</p>
                   <div className="space-y-3">
                     <div className="flex justify-between text-xs font-medium"><span className="text-white/30">Dikumpulkan</span><span className="text-white/60">{formatTanggal(currentTugas.submittedAt)}</span></div>
-                    <div className="flex justify-between text-xs font-medium"><span className="text-white/30">Format File</span><span className="text-indigo-400 font-bold">.{fileExt(currentTugas.filePath).toUpperCase()}</span></div>
+                    <div className="flex justify-between text-xs font-medium"><span className="text-white/30">Format File</span><span className="text-indigo-400 font-bold">.{fileExt(currentTugas.filePaths?.[viewerFileIndex] || '').toUpperCase()}</span></div>
                     {currentTugas.pemeriksa && (
                       <div className="flex justify-between text-xs font-medium pt-1 border-t border-white/5">
                         <span className="text-white/30">Pemeriksa</span>

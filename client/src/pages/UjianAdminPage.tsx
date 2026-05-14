@@ -406,10 +406,6 @@ export default function UjianAdminPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button onClick={() => setShowBatchModal(true)} className="flex items-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 text-xs font-bold tracking-wider uppercase px-4 py-2.5 rounded-xl transition-all">
-                    <Plus className="w-4 h-4" />
-                    Batch Sesi
-                  </button>
                   <button onClick={() => handleHapusUjian(selectedUjian.id, selectedUjian.judul)} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold tracking-wider uppercase px-4 py-2.5 rounded-xl transition-all">
                     <Trash2 className="w-4 h-4" />
                     Hapus

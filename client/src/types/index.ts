@@ -57,7 +57,7 @@ export interface Tugas {
   noAbsen: number;
   stambuk?: string;
   token: string;
-  filePath: string;
+  filePaths: string[];
   submittedAt: string;
   nilai: number | null;
   catatan: string | null;
@@ -73,4 +73,4 @@ export interface AuthContextType {
   user: { nama: string; role?: string } | null;
   login: (user: { nama: string; role?: string }) => void;
   logout: () => void;
-}
+}

@@ -48,7 +48,7 @@ model Tugas {
   noAbsen     Int
   stambuk     String?
   token       String      @unique
-  filePath    String
+  filePaths   String[]    // Array untuk mendukung banyak file
   submittedAt DateTime    @default(now())
   
   nilai       Float?      // nullable, diisi guru nanti
