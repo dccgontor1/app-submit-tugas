@@ -43,6 +43,9 @@ export default function UjianAdminPage() {
   const [isBatchLoading, setIsBatchLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<Sesi[] | null>(null);
   const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
+  const [showRemedialModal, setShowRemedialModal] = useState<{stambuk?: string; noAbsen?: number; kelas?: string; nama: string} | null>(null);
+  const [remedialDurasi, setRemedialDurasi] = useState(60);
+  const [isRemedialLoading, setIsRemedialLoading] = useState(false);
 
   const toggleBatch = (key: string) => setExpandedBatches(prev => {
     const next = new Set(prev);
@@ -168,20 +171,35 @@ export default function UjianAdminPage() {
     fetchMonitor(selectedUjian!.id);
   };
 
-  const handleRemedial = async (stambuk?: string, noAbsen?: number, kelas?: string, nama?: string) => {
-    const min = prompt(`Remedial untuk ${nama || 'siswa'}?\nMasukkan durasi remedial (menit):`, '60');
-    if (!min) return;
-    const deadline = new Date(Date.now() + Number(min) * 60000).toISOString();
-    
-    const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian!.id}/remedial`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ stambuk, noAbsen, kelas, deadline }),
-    });
-    if (!res.ok) return alert('Gagal memproses remedial');
-    alert('Siswa berhasil diremedialkan.');
-    fetchMonitor(selectedUjian!.id);
+  const handleRemedial = (stambuk?: string, noAbsen?: number, kelas?: string, nama?: string) => {
+    setRemedialDurasi(60);
+    setShowRemedialModal({ stambuk, noAbsen, kelas, nama: nama || 'Siswa' });
+  };
+
+  const handleRemedialSubmit = async () => {
+    if (!showRemedialModal || !selectedUjian) return;
+    setIsRemedialLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/ujian/${selectedUjian.id}/remedial`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          stambuk: showRemedialModal.stambuk,
+          noAbsen: showRemedialModal.noAbsen,
+          kelas: showRemedialModal.kelas,
+          durasi: remedialDurasi,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Gagal memproses remedial');
+      setShowRemedialModal(null);
+      fetchMonitor(selectedUjian.id);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsRemedialLoading(false);
+    }
   };
 
   const handleHapusUjian = async (id: string, judul: string) => {
@@ -406,6 +424,10 @@ export default function UjianAdminPage() {
                 </div>
 
                 <div className="flex gap-3">
+                  <button onClick={() => setShowBatchModal(true)} className="flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wider uppercase px-4 py-2.5 rounded-xl transition-all">
+                    <Zap className="w-4 h-4" />
+                    Generate Sesi
+                  </button>
                   <button onClick={() => handleHapusUjian(selectedUjian.id, selectedUjian.judul)} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold tracking-wider uppercase px-4 py-2.5 rounded-xl transition-all">
                     <Trash2 className="w-4 h-4" />
                     Hapus
@@ -775,6 +797,53 @@ export default function UjianAdminPage() {
                 </form>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Remedial ── */}
+      {showRemedialModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-modalIn"
+          onClick={e => { if (e.target === e.currentTarget) setShowRemedialModal(null); }}>
+          <div className="glass-panel border border-white/10 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full pointer-events-none" />
+            <div className="p-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-5">
+                <svg className="w-7 h-7 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-1">Remedial</h2>
+              <p className="text-sm font-semibold text-orange-400 mb-1">{showRemedialModal.nama}</p>
+              <p className="text-xs text-white/30 mb-6">Tugas lama akan dihapus. Siswa dapat login kembali dan submit ulang.</p>
+
+              <div className="bg-white/5 rounded-2xl p-6 border border-white/5 mb-6">
+                <div className="text-4xl font-bold text-white mb-1">{remedialDurasi}</div>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] mb-4">Menit Durasi</p>
+                <input type="range" min={15} max={180} step={15} value={remedialDurasi}
+                  onChange={e => setRemedialDurasi(Number(e.target.value))}
+                  className="w-full accent-orange-500" />
+                <div className="flex justify-between text-[10px] text-white/20 mt-1.5">
+                  <span>15 mnt</span><span>1 jam</span><span>2 jam</span><span>3 jam</span>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-white/30 mb-6">
+                Deadline baru: <span className="text-white/60 font-semibold">
+                  {new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
+                    .format(new Date(Date.now() + remedialDurasi * 60000))}
+                </span>
+              </p>
+
+              <div className="flex gap-3">
+                <button onClick={() => setShowRemedialModal(null)}
+                  className="flex-1 border border-white/10 hover:bg-white/5 text-white/60 text-xs px-4 py-3.5 rounded-xl font-semibold transition-all">
+                  Batal
+                </button>
+                <button onClick={handleRemedialSubmit} disabled={isRemedialLoading}
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white text-xs font-bold tracking-widest uppercase px-4 py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-50">
+                  {isRemedialLoading ? 'Memproses...' : 'Aktifkan Remedial'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

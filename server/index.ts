@@ -94,7 +94,11 @@ app.register(moduleSession, {
   saveUninitialized: false,
   cookie: { secure: false, httpOnly: true, sameSite: "lax", maxAge: 3600000 },
 });
-app.register(moduleMultiPart);
+app.register(moduleMultiPart, {
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100 MB
+  }
+});
 app.register(fastifyJwt, {
   secret: 'tokenUjianDCC2026',
 });
@@ -561,71 +565,7 @@ app.post('/admin/sesi/:token/reset', { preHandler: [pastikanGuru] }, async (req,
   }
 });
 
-// POST /admin/ujian/:id/remedial — Remedial: hapus tugas (jika ada) dan buat sesi baru
-app.post('/admin/ujian/:id/remedial', { preHandler: [pastikanGuru] }, async (req, res) => {
-  const { id: ujianId } = req.params as { id: string };
-  const { stambuk, noAbsen, kelas, deadline } = req.body as {
-    stambuk?: string;
-    noAbsen?: number;
-    kelas?: string;
-    deadline: string;
-  };
 
-  try {
-    const deadlineDate = new Date(deadline);
-    if (isNaN(deadlineDate.getTime())) return res.status(400).send({ message: 'Deadline tidak valid' });
-
-    // 1. Ambil data siswa
-    let siswa;
-    if (stambuk) {
-      siswa = await prisma.siswa.findUnique({ where: { stambuk } });
-    } else if (noAbsen && kelas) {
-      siswa = await prisma.siswa.findFirst({ where: { noAbsen, kelas } });
-    }
-
-    if (!siswa) return res.status(404).send({ message: 'Data siswa tidak ditemukan' });
-
-    // 2. Transaksi: Hapus tugas lama (jika ada) dan buat SesiAktif baru
-    await prisma.$transaction(async (tx) => {
-      // Hapus tugas lama agar bisa submit lagi
-      await tx.tugas.deleteMany({
-        where: stambuk ? { ujianId, stambuk } : { ujianId, noAbsen, kelas }
-      });
-
-      // Hapus sesi lama (jika ada)
-      await tx.sesiAktif.deleteMany({
-        where: stambuk ? { ujianId, stambuk } : { ujianId, noAbsen, kelas }
-      });
-
-      // Buat sesi baru
-      const generateToken = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-      };
-      let token = generateToken();
-      while (await tx.sesiAktif.findUnique({ where: { token } })) {
-        token = generateToken();
-      }
-
-      await tx.sesiAktif.create({
-        data: {
-          token,
-          nama: siswa.nama,
-          kelas: siswa.kelas,
-          noAbsen: siswa.noAbsen,
-          stambuk: siswa.stambuk,
-          deadline: deadlineDate,
-          ujianId,
-        }
-      });
-    });
-
-    return { success: true };
-  } catch (error) {
-    req.log.error(error);
-    return res.status(500).send({ message: 'Gagal memproses remedial' });
-  }
-});
 
 // DELETE /admin/siswa/:stambuk
 app.delete('/admin/siswa/:stambuk', { preHandler: [pastikanAdmin] }, async (req, res) => {
@@ -886,6 +826,75 @@ app.post('/admin/ujian/:id/end-batch', { preHandler: [pastikanAdmin] }, async (r
   }
 });
 
+// ── POST /admin/ujian/:id/remedial — izinkan siswa submit ulang ─────────────
+app.post('/admin/ujian/:id/remedial', { preHandler: [pastikanAdmin] }, async (req, res) => {
+  try {
+    const { id: ujianId } = req.params as { id: string };
+    const { stambuk, noAbsen, kelas, durasi } = req.body as {
+      stambuk?: string;
+      noAbsen?: number;
+      kelas?: string;
+      durasi: number; // menit
+    };
+
+    if (!durasi || durasi <= 0) {
+      return res.status(400).send({ message: 'Durasi remedial tidak valid' });
+    }
+
+    // Cari data siswa untuk nama & info lengkap
+    let siswaData: any = null;
+    if (stambuk) {
+      siswaData = await prisma.siswa.findUnique({ where: { stambuk } });
+    } else if (noAbsen && kelas) {
+      siswaData = await prisma.siswa.findFirst({ where: { noAbsen, kelas } });
+    }
+    if (!siswaData) return res.status(404).send({ message: 'Data siswa tidak ditemukan' });
+
+    const ujian = await prisma.ujian.findUnique({ where: { id: ujianId } });
+    if (!ujian) return res.status(404).send({ message: 'Ujian tidak ditemukan' });
+
+    const now = new Date();
+    const deadline = new Date(now.getTime() + durasi * 60 * 1000);
+
+    // Hapus tugas lama siswa untuk ujian ini
+    await prisma.tugas.deleteMany({
+      where: stambuk
+        ? { ujianId, stambuk }
+        : { ujianId, noAbsen: siswaData.noAbsen, kelas: siswaData.kelas },
+    });
+
+    // Hapus sesi aktif lama jika masih ada
+    await prisma.sesiAktif.deleteMany({
+      where: stambuk
+        ? { ujianId, stambuk }
+        : { ujianId },
+    });
+
+    // Buat sesi remedial baru
+    const generateToken = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    };
+
+    const sesiRemedial = await prisma.sesiAktif.create({
+      data: {
+        token: generateToken(),
+        nama: siswaData.nama,
+        kelas: siswaData.kelas,
+        noAbsen: siswaData.noAbsen,
+        stambuk: siswaData.stambuk,
+        ujianId,
+        deadline,
+      },
+    });
+
+    return { success: true, sesi: sesiRemedial };
+  } catch (error) {
+    req.log.error(error);
+    return res.status(500).send({ message: 'Gagal memproses remedial' });
+  }
+});
+
 // ── POST /admin/ujian/:id/extend ──────────────────────────
 app.post('/admin/ujian/:id/extend', { preHandler: [pastikanAdmin] }, async (req, res) => {
   try {
@@ -947,8 +956,6 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
   const allowedFormats = ujian?.formatFile ?? ['pdf', 'docx', 'doc', 'pptx', 'ppt','jpg', 'jpeg', 'png'];
 
   const folderName = judulUjian.replace(/[^a-zA-Z0-9_\-]/g, '_');
-  const folder = path.join(__dirname, '..', 'uploads', folderName, kelas);
-  fs.mkdirSync(folder, { recursive: true });
 
   let fileIndex = 0;
   for await (const data of parts) {
@@ -957,12 +964,18 @@ app.post('/upload-jawaban', { preHandler: [pastikanSiswa] }, async (req, res) =>
       continue;
     }
 
+    // Buat folder per ekstensi di dalam folder kelas
+    const folder = path.join(__dirname, '..', 'uploads', folderName, kelas, ext);
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+    }
+
     // Nama file unik per lampiran
     const filename = `${stambuk || noAbsen}_${nama.replace(/\s+/g, '_')}_${fileIndex}.${ext}`;
     const filepath = path.join(folder, filename);
 
     await pipeline(data.file, fs.createWriteStream(filepath));
-    filePaths.push(path.join(folderName, kelas, filename));
+    filePaths.push(path.join(folderName, kelas, ext, filename));
     fileIndex++;
   }
 

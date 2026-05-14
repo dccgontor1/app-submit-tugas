@@ -146,20 +146,6 @@ export default function UjianSiswaPage() {
     }
   };
 
-  const handleMulai = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/mulai-ujian`, { method: 'POST', credentials: 'include' });
-      if (res.ok) {
-        checkStatus();
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Gagal memulai ujian');
-      }
-    } catch (err) {
-      alert('Terjadi kesalahan koneksi');
-    }
-  };
-
   const formatCountdown = (secs: number) => {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
@@ -199,12 +185,6 @@ export default function UjianSiswaPage() {
             Halo, <span className="text-white/80 font-medium">{profile.nama}</span>.<br />
             Silakan klik tombol di bawah untuk memulai ujian.
           </p>
-          <button
-            onClick={handleMulai}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-4 rounded-xl mb-6 shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all uppercase tracking-widest text-sm"
-          >
-            Mulai Ujian
-          </button>
           <button
             onClick={handleLogout}
             className="text-xs text-white/40 hover:text-white/80 transition-colors uppercase tracking-[0.15em] mb-8 font-medium"
@@ -291,9 +271,8 @@ export default function UjianSiswaPage() {
 
         <div className="glass-panel p-8 rounded-3xl transition-all hover:shadow-[0_0_40px_rgba(59,130,246,0.15)] group">
           <div
-            className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer ${
-              files.length > 0 ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-white/10 group-hover:border-blue-500/30 group-hover:bg-blue-500/5'
-            }`}
+            className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer ${files.length > 0 ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-white/10 group-hover:border-blue-500/30 group-hover:bg-blue-500/5'
+              }`}
             onClick={() => document.getElementById('file-input')?.click()}
           >
             <input
@@ -303,7 +282,7 @@ export default function UjianSiswaPage() {
               className="hidden"
               onChange={handleFileChange}
             />
-            
+
             <div className="w-16 h-16 mx-auto bg-white/5 rounded-2xl flex items-center justify-center mb-4 text-white/30 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-all">
               <Upload className="w-8 h-8" />
             </div>
@@ -324,7 +303,7 @@ export default function UjianSiswaPage() {
                         <span className="text-[10px] text-white/40">{(f.size / 1024 / 1024).toFixed(2)} MB</span>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); removeFile(i); }}
                       className="p-1.5 hover:bg-red-500/20 text-white/30 hover:text-red-400 rounded-lg transition-colors"
                     >
